@@ -1,9 +1,9 @@
-#include "msg_queue.h"
+#include "comms.h"
 
 #include <stdlib.h>
 
 struct MsgQueueNode_t* newMsgQueueNode_t(Msg message) {
-    struct MsgQueueNode_t* node = malloc(sizeof(MsgQueueNode_t));
+    struct MsgQueueNode_t* node = malloc(sizeof(struct MsgQueueNode_t));
     node->next = NULL;
     node->message = message;
     return node;
@@ -11,7 +11,7 @@ struct MsgQueueNode_t* newMsgQueueNode_t(Msg message) {
 
 MsgQueue* newMsgQueue() {
     MsgQueue* msgQueue = malloc(sizeof(MsgQueue));
-    pthread_mutex_init(&msgQueue->lock, NULL)
+    pthread_mutex_init(&msgQueue->lock, NULL);
     msgQueue->front = NULL;
     msgQueue->back = NULL;
     return msgQueue;
@@ -19,8 +19,8 @@ MsgQueue* newMsgQueue() {
 
 void enqueueMsgQueue(MsgQueue* queue, Msg message) {
     pthread_mutex_lock(&queue->lock);
-    MsgQueueNode_t* node = newMsgQueueNode_t(message);
-    node.next = NULL;
+    struct MsgQueueNode_t* node = newMsgQueueNode_t(message);
+    node->next = NULL;
     if(queue->front != NULL) {
         queue->back->next = node;
         queue->back = node;
@@ -43,7 +43,7 @@ Msg dequeueMsgQueue(MsgQueue* queue) {
         queue->back = NULL;
     } else {
         result = queue->front->message;
-        MsgQueueNode_t* temp = queue->front
+        struct MsgQueueNode_t* temp = queue->front;
         queue->front = queue->front->next;
         free(temp);
     }
@@ -64,7 +64,7 @@ MsgQueue* dequeueAllMsgQueue(MsgQueue* queue) {
 
 void freeMsgQueue(MsgQueue* queue) {
     while(queue->front != NULL) {
-        dequeue(queue);
+        dequeueMsgQueue(queue);
     }
     pthread_mutex_destroy(&queue->lock);
     free(queue);

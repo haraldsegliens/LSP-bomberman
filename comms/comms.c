@@ -1,6 +1,7 @@
 #include "comms.h"
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
@@ -9,57 +10,60 @@
 void* handleRecv(void* params) {
     Connection* con = (Connection*)params;
     char buffer[MAX_MESSAGE];
-    while(!con->kill) {
-
+    while(1) {
         int len = recv(con->socket, buffer, MAX_MESSAGE, 0);
         if (len < 0) {
             printf("ignored recv error packet\n");
             continue;
+        } else if(len == 0) {
+            freeConnection(con);
+            return NULL;
         }
 
-        printf("received %d bytes",len);
+        printf("received %d bytes from %s:%d %.10s...\n", len, con->peerAddr, con->peerPort, buffer);
 
         Msg message;
-        message.type = handleParams.type;
         message.buffer = malloc(len+1);
         strncpy(message.buffer,buffer,len);
         message.buffer[len] = '\0';
+        message.buffer_length = len;
         enqueueMsgQueue(con->recvMessages,message);
     }
-
     return NULL;
 }
 
 void* handleSend(void* params) {
     Connection* con = (Connection*)params;
-    while(!con->kill) {
+    while(1) {
         Msg message = dequeueMsgQueue(con->sendMessages);
         if(message.buffer_length == 0) {
             continue;
         }
-        send(con->socket,
-             message.buffer, 
-             message.buffer_length, 
-             0
-        );
+        send(con->socket,message.buffer, message.buffer_length,0);
+        printf("sent %ld bytes from %s:%d %.10s...\n", message.buffer_length, con->peerAddr, con->peerPort, message.buffer);
     }
     return NULL;
 }
 
-Connection* newConnection(int socket) {
+Connection* newServerConnection(int socket,char* addr, int port,ConList* conList) {
     Connection* con = malloc(sizeof(Connection));
-    con->kill = 0;
+    con->conList = conList;
     con->recvMessages = newMsgQueue();
     con->sendMessages = newMsgQueue();
     con->socket = socket;
+    con->peerAddr = addr;
+    con->peerPort = port;
     pthread_create(&con->threadRecv, NULL, handleRecv, (void *) con);
     pthread_create(&con->threadSend, NULL, handleSend, (void *) con);
+    printf("%s:%d connected\n",con->peerAddr,con->peerPort);
     return con;
 }
 
-Connection* newConnection(char* addr, int port) {
+Connection* newClientConnection(char* addr, int port) {
     Connection* con = malloc(sizeof(Connection));
-    con->kill = 0;
+    con->conList = NULL;
+    con->peerAddr = addr;
+    con->peerPort = port;
     con->recvMessages = newMsgQueue();
     con->sendMessages = newMsgQueue();
     con->socket = socket(AF_INET , SOCK_STREAM , 0);
@@ -67,12 +71,13 @@ Connection* newConnection(char* addr, int port) {
     server.sin_addr.s_addr = inet_addr(addr);
     server.sin_family = AF_INET;
     server.sin_port = htons(port);
-    if (connect(sock , (struct sockaddr *)&server , sizeof(server)) < 0) {
+    if (connect(con->socket, (struct sockaddr *)&server , sizeof(server)) < 0) {
         perror("connect failed. Error");
         return NULL;
     }
     pthread_create(&con->threadRecv, NULL, handleRecv, (void *) con);
     pthread_create(&con->threadSend, NULL, handleSend, (void *) con);
+    printf("connected to %s:%d\n",con->peerAddr,con->peerPort);
     return con;
 }
 
@@ -85,23 +90,35 @@ MsgQueue* getReceivedMessages(Connection* con) {
 }
 
 void freeConnection(Connection* con) {
-    con->kill = 1;
-    pthread_join(con->threadSend, NULL);
-    pthread_join(con->threadRecv, NULL);
-    freeMsgQueue(recvMessages);
-    freeMsgQueue(sendMessages);
-    close(socket);
+    if(con->conList != NULL) {
+        removeConList(con->conList,con);
+    }
+    pthread_cancel(con->threadSend);
+    pthread_cancel(con->threadRecv);
+    freeMsgQueue(con->recvMessages);
+    freeMsgQueue(con->sendMessages);
+    shutdown(con->socket,2);
+    printf("disconnected from %s:%d\n", con->peerAddr, con->peerPort);
     free(con);
+}
+
+struct ConListNode_t* newConListNode(Connection* con) {
+    struct ConListNode_t* node = malloc(sizeof(struct ConListNode_t));
+    node->next = NULL;
+    node->con = con;
+    return node;
 }
 
 ConList* newConList() {
     ConList* conList = malloc(sizeof(ConList));
     conList->front = NULL;
     conList->back = NULL;
+    pthread_mutex_init(&conList->lock, NULL);
     return conList;
 }
 
-void addConListNode(ConList* list, struct ConListNode_t* node) {
+void addConList(ConList* list, struct ConListNode_t* node) {
+    pthread_mutex_lock(&list->lock);
     if(list->front == NULL) {
         list->front = node;
         list->back = node;    
@@ -109,36 +126,66 @@ void addConListNode(ConList* list, struct ConListNode_t* node) {
         list->back->next = node;
         list->back = node;
     }
+    pthread_mutex_unlock(&list->lock);
 }
 
-struct ConListNode_t* newConListNode(Connection* con, char* addr, int port) {
-    struct ConListNode_t* node = malloc(sizeof(struct ConListNode_t));
-    node->next = NULL;
-    node->con = con;
-    node->addr = strcpy(addr);
-    node->port = port;
-    return node;
+void removeConList(ConList* list, Connection* con) {
+    pthread_mutex_lock(&list->lock);
+    if(list->front == list->back && list->front->con == con) {
+        free(list->front);
+        list->front = NULL;
+        list->back = NULL;
+    } else if(list->front->con == con) {
+        free(list->front);
+        list->front = list->front->next;
+    } else {
+        struct ConListNode_t* i_prev = list->front;
+        struct ConListNode_t* i_node = list->front->next;
+        while(i_node != NULL) { 
+            if(i_node->con == con) {
+                i_prev->next = i_node->next;
+                free(i_node);
+                break;
+            }
+            i_prev = i_node;
+            i_node = i_node->next;
+        }
+    }
+    pthread_mutex_unlock(&list->lock);
+}
+
+void freeConList(ConList* list) {
+    struct ConListNode_t* tmp;
+    pthread_mutex_lock(&list->lock);
+    struct ConListNode_t* i_node = list->front;
+    while(i_node != NULL) { 
+        freeConnection(i_node->con);
+        tmp = i_node;
+        i_node = i_node->next;
+        free(tmp);
+    }
+    pthread_mutex_destroy(&list->lock);
+    free(list);    
 }
 
 void* handleAccept(void* params) {
     Listener* listener = (Listener*)params;
-    while(!listener->kill) {
+    while(1) {
         struct sockaddr_in addr;
         socklen_t addrSize = sizeof(addr);
-        int clientFd = accept(tcpFd, (struct sockaddr *) &addr, &addrSize);
+        int clientFd = accept(listener->socket, (struct sockaddr *) &addr, &addrSize);
         if (clientFd == -1) {
             printf("ignored accept error\n");
             continue;
         }
 
-        struct ConListNode_t* node = newConListNode(
-            newConnection(clientFd),
+        struct ConListNode_t* node = newConListNode(newServerConnection(
+            clientFd,
             inet_ntoa(addr.sin_addr),
-            ntohs(addr.sin_port)
-        );
-        addConListNode(listener->connections, node);
-
-        printf("connected with %s:%d",node->addr,node->port);
+            ntohs(addr.sin_port),
+            listener->connections
+        ));
+        addConList(listener->connections, node);
     }
 
     return NULL;
@@ -146,7 +193,7 @@ void* handleAccept(void* params) {
 
 Listener* createListener(int port, int connections_count) {
     Listener* listener = malloc(sizeof(Listener));
-    listener->kill = 0;
+    listener->connections = newConList();
     listener->socket = socket(AF_INET, SOCK_STREAM, 0);
     if (listener->socket < 0) {
         perror("tcp socket");
@@ -170,22 +217,9 @@ Listener* createListener(int port, int connections_count) {
     return listener;
 }
 
-void sendListener(struct ConListNode_t* conNode, Msg message) {
-    sendConnection(conNode->con,message);        
-}
-
 void freeListener(Listener* listener) {
-    listener->kill = 1;
-    pthread_join(listener->threadAccept, NULL);
-    struct ConListNode_t* tmp;
-    struct ConListNode_t* i_node = list->front;
-    while(i_node != NULL) { 
-        freeConnection(i_node->con);
-        tmp = i_node;
-        i_node = i_node->next;
-        free(tmp);
-    }
-    free(listener->connections);
-    close(listener->socket);
+    pthread_cancel(listener->threadAccept);
+    freeConList(listener->connections);
+    shutdown(listener->socket,2);
     free(listener);
 }
