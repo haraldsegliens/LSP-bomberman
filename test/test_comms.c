@@ -16,16 +16,13 @@
 
 typedef struct timespec timespec_t;
 
-timespec_t wait_start_time;
-timespec_t last_calculation_time;
-
-#define WAITFORCOND(COND,WAIT_TIME,ERROR_TEXT,UPDATE_COND) \
-wait_start_time = getCurrentTime();\
-last_calculation_time = wait_start_time;\
+#define WAITFORCOND(ID,COND,WAIT_TIME,ERROR_TEXT,UPDATE_COND) \
+timespec_t wait_start_time_##ID = getCurrentTime();\
+timespec_t last_calculation_time_##ID = wait_start_time_##ID;\
 while(!(COND)) {\
-    while(diff(last_calculation_time,getCurrentTime()).tv_nsec < CALCULATION_DELAY_NSECS) {}\
-    last_calculation_time = getCurrentTime();\
-    if(diff(wait_start_time,getCurrentTime()).tv_sec >= WAIT_TIME) {\
+    while(diff(last_calculation_time_##ID,getCurrentTime()).tv_nsec < CALCULATION_DELAY_NSECS) {}\
+    last_calculation_time_##ID = getCurrentTime();\
+    if(diff(wait_start_time_##ID,getCurrentTime()).tv_sec >= WAIT_TIME) {\
         perror(ERROR_TEXT);\
         return;\
     }\
@@ -84,7 +81,7 @@ void singleConnectionTest() {
 
     Connection* con = newClientConnection("127.0.0.1", PORT);
     assert(con != NULL);
-    WAITFORCOND(countConnections(listener) == 1,1,"connection failed\n",;)
+    WAITFORCOND(0,countConnections(listener) == 1,1,"connection failed\n",;)
 
     Msg client_msg;
     client_msg.buffer = "test_message";
@@ -92,7 +89,7 @@ void singleConnectionTest() {
     sendConnection(con,client_msg);
     
     Msg recvMsg = dequeueMsgQueue(getReceivedMessages(listener->connections->front->con));
-    WAITFORCOND(recvMsg.buffer_length != 0,1,"Client -> Server failed\n",
+    WAITFORCOND(1,recvMsg.buffer_length != 0,1,"Client -> Server failed\n",
         recvMsg = dequeueMsgQueue(getReceivedMessages(listener->connections->front->con));
     )
     assert(strcmp(client_msg.buffer,recvMsg.buffer) == 0);
@@ -104,25 +101,24 @@ void singleConnectionTest() {
     sendConnection(server_con,server_msg);
     
     recvMsg = dequeueMsgQueue(getReceivedMessages(con));
-    WAITFORCOND(recvMsg.buffer_length != 0,1,"Server -> Client failed\n",
+    WAITFORCOND(2,recvMsg.buffer_length != 0,1,"Server -> Client failed\n",
         recvMsg = dequeueMsgQueue(getReceivedMessages(con));
     )
     assert(strcmp(server_msg.buffer,recvMsg.buffer) == 0);
 
     freeConnection(con);
-    WAITFORCOND(countConnections(listener) == 0,1,"Connection free failed\n",;)
+    WAITFORCOND(3,countConnections(listener) == 0,1,"Connection free failed\n",;)
     freeListener(listener);
 }
 
 void multipleMsgSingleConnectionTest() {
-    int port = PORT + 1;
     printf("Performing multiple msg sending with one connection\n");
-    Listener* listener = createListener(port,10);
+    Listener* listener = createListener(PORT,10);
     assert(listener != NULL);
 
-    Connection* con = newClientConnection("127.0.0.1", port);
+    Connection* con = newClientConnection("127.0.0.1", PORT);
     assert(con != NULL);
-    WAITFORCOND(countConnections(listener) == 1,1,"connection failed\n",;)
+    WAITFORCOND(4,countConnections(listener) == 1,1,"connection failed\n",;)
 
     char buffer[17];
     int i = 0;
@@ -135,7 +131,7 @@ void multipleMsgSingleConnectionTest() {
         sendConnection(con,client_msg);
         
         recvMsg = dequeueMsgQueue(getReceivedMessages(listener->connections->front->con));
-        WAITFORCOND(recvMsg.buffer_length != 0,1,"Client -> Server failed\n",
+        WAITFORCOND(5,recvMsg.buffer_length != 0,1,"Client -> Server failed\n",
             recvMsg = dequeueMsgQueue(getReceivedMessages(listener->connections->front->con));
         )
         assert(strcmp(client_msg.buffer,recvMsg.buffer) == 0);
@@ -151,13 +147,13 @@ void multipleMsgSingleConnectionTest() {
         sendConnection(server_con,server_msg);
         
         recvMsg = dequeueMsgQueue(getReceivedMessages(con));
-        WAITFORCOND(recvMsg.buffer_length != 0,1,"Server -> Client failed\n",
+        WAITFORCOND(6,recvMsg.buffer_length != 0,1,"Server -> Client failed\n",
             recvMsg = dequeueMsgQueue(getReceivedMessages(con));
         )
         assert(strcmp(server_msg.buffer,recvMsg.buffer) == 0);
     }
     freeConnection(con);
-    WAITFORCOND(countConnections(listener) == 0,1,"Connection free failed\n",;)
+    WAITFORCOND(7,countConnections(listener) == 0,1,"Connection free failed\n",;)
     freeListener(listener);
     printf("Done\n");
 }
