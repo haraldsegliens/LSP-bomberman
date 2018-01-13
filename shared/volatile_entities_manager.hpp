@@ -1,0 +1,67 @@
+#ifndef VOLATILE_ENTITIES_MANAGER_H
+#define VOLATILE_ENTITIES_MANAGER_H
+
+#include "shared_enums.hpp"
+#include <vector>
+#include <list>
+#include <Vector2.hpp>
+#include <Time.hpp>
+
+#ifdef CLIENT
+#include <RenderWindow.hpp>
+#include <Texture.hpp>
+#define VolatileEntitiesManager CVolatileEntitiesManager
+#else
+struct VolatileEntity;
+struct VolatileEntityEvent {
+    sf:Time time;
+    VolatileEntity* entity;
+};
+#endif
+
+typedef enum { 
+    EMPTY = 0,
+    DYNAMITE = 1,
+    FIRE = 2,
+    POWERUP = 3
+} VolatileEntityType;
+
+struct VolatileEntity {
+    VolatileEntityType type;
+    Powerup powerupType;
+
+#ifdef SERVER
+    sf:Time createdTime;
+    int dynamitePower;
+    std::vector<std::list<VolatileEntityEvent>::iterator> events;
+#endif
+};
+
+class VolatileEntitiesManager {
+    sf::Vector2<int> mapSize;
+    std::vector<VolatileEntity> volatileEntitiesMap;//tādā pašā kārtībā, kā World šūnas
+#ifdef CLIENT
+    sf::Texture tileMap;
+#else
+    std::list<VolatileEntityEvent> events;
+#endif
+public:
+    VolatileEntitiesManager();
+    ~VolatileEntitiesManager();
+
+    VolatileEntity* get(sf::Vector2<int> pos) {
+        return &volatileEntitiesMap[pos.y * mapSize.x + pos.x];
+    }
+#ifdef CLIENT
+    void draw(sf::RenderWindow& window);
+#else
+    void update();
+    void deleteEntity(VolatileEntity* entity);
+    void addEvent(VolatileEntity* entity, sf::Time time);
+    VolatileEntity* createDynamite(sf::Vector2<int> pos, int power, bool isRemote);
+    VolatileEntity* createFire(sf::Vector2<int> pos);
+    VolatileEntity* createPowerup(sf::Vector2<int> pos, Powerup powerupType);
+#endif
+};
+
+#endif
