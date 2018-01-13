@@ -35,8 +35,8 @@ class Player {
     bool dead;
     std::list<VolatileEntity*> currentDynamites;
     sf::Time startedTemporaryPowerup;
-    int playerInput;
-    int lastProcessedPlayerInput;
+    short playerInput;
+    short lastProcessedPlayerInput;
 #endif
 public:
     Player();

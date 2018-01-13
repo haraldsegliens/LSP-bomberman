@@ -1,14 +1,21 @@
 #ifndef GAMERULES_H
 #define GAMERULES_H
 
-#include "comms/listener_wrapper.hpp"
-#include "shared_enums.hpp"
 #include <Clock.hpp>
 #include <vector>
-#include <pthread.h>
+#include <thread>
+#include <mutex>
+
+#include "shared_enums.hpp"
+#include "world.hpp"
+#include "player.hpp"
+#include "volatile_entities_manager.hpp"
 
 #ifdef CLIENT
 #include <Time.hpp>
+
+#include "comms/connection_wrapper.hpp"
+#include "../client/c_screen.hpp"
 
 #define Gamerules CGamerules
 
@@ -20,6 +27,7 @@ struct LobbyClient {
 #else
 #include <Clock.hpp>
 
+#include "comms/listener_wrapper.hpp"
 #endif
 
 class Gamerules {
@@ -28,11 +36,15 @@ class Gamerules {
 
     int dynamiteTime;
     float dynamiteSlideSpeed;
-    //izveidot visu entītiju deklerācijas
-    //std::vector<>
-    pthread_mutex_t lock;
-    pthread_t mainLoop;
-    pthread_t parseMessages;
+    //entities
+    World world;
+    VolatileEntityManager volatileEntityManager;
+    std::vector<Player> players;
+
+    //threads and mutex
+    std::mutex mutex;
+    std::thread mainLoop;
+    std::thread parseMessages;
 
 #ifdef CLIENT
     ConnectionWrapper connection;
@@ -40,7 +52,7 @@ class Gamerules {
     std::vector<LobbyClient> lobbyClients;
     sf::Time lastReceivedMessage;
     std::vector<int> gameOverWinners;
-    //CScreen screen
+    CScreen screen;
 #else
     sf::Clock clock;
     ListenerWrapper listener;
