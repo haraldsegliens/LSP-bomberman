@@ -28,6 +28,9 @@ struct LobbyClient {
 #include <Clock.hpp>
 
 #include "comms/listener_wrapper.hpp"
+
+#define MAP_FILE "level1.map"
+#define ROUND_TIME 90
 #endif
 
 class Gamerules {
@@ -46,6 +49,10 @@ class Gamerules {
     std::thread mainLoop;
     std::thread parseMessages;
 
+    void handleLobbyState();
+    void handleInitState();
+    void handleGameState();
+
 #ifdef CLIENT
     ConnectionWrapper connection;
     int myClientId;
@@ -58,7 +65,17 @@ class Gamerules {
     ListenerWrapper listener;
     sf::Time initStart;
     sf::Time lastLoopStart;
-    float deltaTime;
+    sf::Time deltaTime;
+
+    std::vector<WorldCell> loadMapFromFile(std::string filename);
+    void sendMessageForAllPlayers(const std::string& message);
+    void sendLobbyStatus();
+    void sendGameStart();
+    void sendMapUpdate();
+    void sendObjects();
+    void sendGameOver();
+    void cleanupPlayers();
+    int countReady();
 #endif
 
 public:
@@ -66,17 +83,29 @@ public:
 #ifdef CLIENT
     Gamerules(std::string addr, int port);
 #else
-    Gamerules();
+    Gamerules(int port);
 #endif
     ~Gamerules();
 
-    void* handleMainLoop();
-    void* handleParseMessages();
+    void handleMainLoop();
+    void handleParseMessages();
     void cleanup();
+
+    World* getWorld() {
+        return &world;
+    }
 
 #ifdef CLIENT
     void ready();
     void disconnectClient();
+#else
+    sf::Time getCurrentTime() {
+        return clock.getElapsedTime();
+    }
+
+    sf::Time getDeltaTime() {
+        return deltaTime;
+    }
 #endif
 };
 

@@ -5,6 +5,7 @@
 #include <Time.hpp>
 #include <Vector2.hpp>
 #include "shared_enums.hpp"
+#include "gamerules.hpp"
 
 #ifdef CLIENT
 #define Player CPlayer
@@ -33,6 +34,7 @@ class Player {
     sf::Time lastKeepAlive;
     bool ready;
     bool dead;
+    bool destroy;
     std::list<VolatileEntity*> currentDynamites;
     sf::Time startedTemporaryPowerup;
     short playerInput;
@@ -42,12 +44,18 @@ public:
     Player();
     ~Player();
 
+    bool isReady() { return ready; }
+    void setReady(bool ready) { this->ready = ready; }
+
 #ifdef CLIENT
     void draw(sf::RenderWindow& window);
 #else
-    void updateKeepAlive();
-    void update();
-    void destroy();
+    void updateKeepAlive(Gamerules* gamerules);
+    void update(Gamerules* gamerules);
+
+    bool mustDestroy() { return destroy; }
+    bool isDead() { return dead; }
+    ConnectionWrapper* getConnection() { return playerConnection; }
 #endif
 };
 

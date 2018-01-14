@@ -38,7 +38,7 @@ struct VolatileEntity {
 };
 
 class VolatileEntitiesManager {
-    sf::Vector2<int> mapSize;
+    Gamerules* gamerules;
     std::vector<VolatileEntity> volatileEntitiesMap;//tādā pašā kārtībā, kā World šūnas
 #ifdef CLIENT
     sf::Texture tileMap;
@@ -46,16 +46,18 @@ class VolatileEntitiesManager {
     std::list<VolatileEntityEvent> events;
 #endif
 public:
-    VolatileEntitiesManager();
+    VolatileEntitiesManager(Gamerules* gamerules);
     ~VolatileEntitiesManager();
 
     VolatileEntity* get(sf::Vector2<int> pos) {
-        return &volatileEntitiesMap[pos.y * mapSize.x + pos.x];
+        return &volatileEntitiesMap[pos.y * gamerules->getWorld()->getWidth() + pos.x];
     }
+    void cleanup();
+
 #ifdef CLIENT
     void draw(sf::RenderWindow& window);
 #else
-    void update();
+    void update(Gamerules* gamerules);
     void deleteEntity(VolatileEntity* entity);
     void addEvent(VolatileEntity* entity, sf::Time time);
     VolatileEntity* createDynamite(sf::Vector2<int> pos, int power, bool isRemote);

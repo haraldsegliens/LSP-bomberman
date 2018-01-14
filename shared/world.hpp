@@ -20,11 +20,12 @@ struct WorldChange {
 #endif
 
 class World {
+    sf::Vector2<int> mapSize;
     std::vector<WorldCell> map;//taja pašā kārtībā kā bija GameStart paketē
 #ifdef CLIENT
     sf::Texture tileset;
 #else
-    bool isClosing;
+    bool closing;
     int closingPathIndex;
     std::vector<sf::Vector2<int>> closingPath;
     sf::Vector2<int> closingPosition
@@ -34,12 +35,19 @@ class World {
 public:
     World();
     ~World();
+
+    void loadMap(std::vector<WorldCell>& map,sf::Vector2<int> mapSize);
+    int getWidth() { return mapSize.x; }
+    int getHeight() { return mapSize.y; }
+    int getCell(sf::Vector2<int> pos) { return mapSize[pos.x + pos.y * mapSize.y]; }
+    void cleanup();
 #ifdef CLIENT
     void draw(sf::RenderWindow& window);
 #else
     void updateKeepAlive();
-    void update();
-    void destroy();
+    void update(Gamerules* gamerules);
+    void startClosing() { closing = true; }
+    bool isClosing() { return closing; }
 #endif
 };
 
