@@ -33,9 +33,14 @@ class Player {
     sf::Time startedTemporaryPowerup;
     short playerInput;
     short lastProcessedPlayerInput;
+
+
 public:
     int id;
     std::string name;
+    short x;
+    short y;
+    char startDirection;
 
     // Player();
     // ~Player();
@@ -51,10 +56,29 @@ public:
     bool isDead() { return dead; }
     // ConnectionWrapper* getConnection() { return playerConnection; }
 
-    void setId(char id){ this->id = id; }
+    void setId(char id) { this->id = id; }
     void setName(char* name) { this->name = name; }
+    void setPosition(short x, short y) { this->x = x; this->y = y; }
+    void setStartDirection(char direction) { this->startDirection = direction; }
 };
 
+class World 
+{
+    public:
+        int sizeX;
+        int sizeY;
+        char* worldTiles;
+        char dynamiteTime;
+        char dynamiteSpeed;
+
+        void setSizeX(char sizeX) { this->sizeX = sizeX; }
+        void setSizeY(char sizeY) { this->sizeY = sizeY;  }
+        void setWorldTiles(char* worldTiles) { this->worldTiles = worldTiles; }
+        void setDynamiteTime(char dynamiteTime) { this->dynamiteTime = dynamiteTime; }
+        void setDynamiteSpeed(char dynamiteSpeed) { this->dynamiteSpeed = dynamiteSpeed; }
+};
+
+World world;
 vector<Player> players;
 
 int connectToServer(const char* IP, int PORT)
@@ -260,6 +284,70 @@ void readLobbyStatusResponse(int socket)
         // updating lobby clients
         updateLobbyClient(playerId[0], playerName, readyStatusBool);
     }
+}
+
+void updateLobbyClientGameStart(char playerId, char* playerName, short x, short y, char direction)
+{
+    for (int i = 0; i < players.size(); ++i)
+    {
+        if(players[i].id == playerId)
+        {
+            players[i].setName(playerName);
+            players[i].setReady(true);
+
+            return;
+        }
+        // inserting new player
+        Player new_player;
+        new_player.setId(playerId);
+        new_player.setName(playerName);
+        new_player.setReady(true);
+        new_player.setPosition(x, y);
+        new_player.setStartDirection(direction);
+        players.push_back(new_player);
+    }
+}
+
+void createWorldGameStart(char sizeX, char sizeY, char* worldTiles, char dynamiteTime, char dynamiteSpeed)
+{
+    world.setSizeX(sizeX);
+    world.setSizeY(sizeY);
+    world.setWorldTiles(worldTiles);
+    world.setDynamiteTime(dynamiteTime);
+    world.setDynamiteSpeed(dynamiteSpeed);
+}
+
+void readGameStartResponse(int socket)
+{
+    int valread;
+    char playerCount[1] = {0};
+    valread = read(socket, playerCount, 1);
+    for (int i = 0; i < (int)playerCount[0]; ++i)
+    {
+        char playerId[1] = {0};
+        valread = read(socket, playerId, 1);
+        char playerName[23] = {0};
+        valread = read(socket, playerName, 23);
+        short x;
+        valread = read(socket, &x, 2);
+        short y;
+        valread = read(socket, &y, 2);
+        char direction[1] = {0};
+        valread = read(socket, direction, 1);
+        // updating clients before game
+        updateLobbyClientGameStart(playerId[0], playerName, x, y, direction[0]);
+    }
+    char worldX[1] = {0};
+    valread = read(socket, worldX, 1);
+    char worldY[1] = {0};
+    valread = read(socket, worldY, 1);
+    char worldTiles[(int)worldX[0] * (int)worldY[0]];
+    valread = read(socket, worldTiles, (int)worldX[0] * (int)worldY[0]);
+    char dynamiteTime[1] = {0};
+    valread = read(socket, dynamiteTime, 1);
+    char dynamiteSpeed[1] = {0};
+    valread = read(socket, dynamiteSpeed, 1);
+    createWorldGameStart(worldX[0], worldY[0], worldTiles, dynamiteTime[0], dynamiteSpeed[0]);
 }
 
 int main()
