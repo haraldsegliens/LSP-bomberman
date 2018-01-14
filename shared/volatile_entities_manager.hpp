@@ -30,22 +30,20 @@ struct VolatileEntity {
     Powerup powerupType;
 
 #ifdef SERVER
-    sf:Time createdTime;
-    int dynamitePower;
-    std::vector<std::list<VolatileEntityEvent>::iterator> events;
+    std::list<VolatileEntityEvent>::iterator event;
 #endif
 };
 
 class VolatileEntitiesManager {
-    Gamerules* gamerules;
     std::vector<VolatileEntity> volatileEntitiesMap;//tādā pašā kārtībā, kā World šūnas
+    Gamerules* gamerules;
 #ifdef CLIENT
     sf::Texture tileMap;
 #else
     std::list<VolatileEntityEvent> events;
 #endif
 public:
-    VolatileEntitiesManager(Gamerules* gamerules);
+    VolatileEntitiesManager(Gamerules* _gamerules);
     ~VolatileEntitiesManager();
 
     VolatileEntity* get(sf::Vector2<int> pos) {
@@ -58,9 +56,9 @@ public:
 #else
     void update(Gamerules* gamerules);
     void deleteEntity(VolatileEntity* entity);
-    void addEvent(VolatileEntity* entity, sf::Time time);
     VolatileEntity* createFire(sf::Vector2<int> pos);
     VolatileEntity* createPowerup(sf::Vector2<int> pos, Powerup powerupType);
+    std::list<VolatileEntityEvent>::iterator addEvent(VolatileEntity* entity, sf::Time time);
 #endif
 };
 

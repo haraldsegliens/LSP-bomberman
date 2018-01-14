@@ -20,7 +20,7 @@ CPlayer::~CPlayer() {}
 void CPlayer::draw(sf::RenderWindow& window) {
     int i = direction.x == 0 ? (direction.y == -1 ? 0 : 1) : (direction.x == -1 ? 2 : 3);
     sf::RectangleShape rectangle;
-    rectangle.setSize(sf::Vector2f(SPRITE_CELL_SIZE, SPRITE_CELL_SIZE));
+    rectangle.setSize(sf::Vector2f(SPRITE_PLAYER_SIZE, SPRITE_PLAYER_SIZE));
     rectangle.setPosition(position.x * SPRITE_CELL_SIZE + SPRITE_PLAYER_SIZE/2, 
                           position.y * SPRITE_CELL_SIZE + SPRITE_PLAYER_SIZE/2);
     rectangle.setTexture(&playerTexture);
