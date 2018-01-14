@@ -76,6 +76,7 @@ class Gamerules {
 
     void sendJoinRequest();
     void sendKeepAlive();
+    void sendReady();
     void sendPlayerInput(short inputState);
 
     void parseJoinResponse(StringReader& reader);
