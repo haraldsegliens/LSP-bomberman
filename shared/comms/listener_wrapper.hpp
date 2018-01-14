@@ -2,7 +2,8 @@
 #define LISTENER_WRAPPER_H
 
 #include <string.h>
-#include <vector>
+#include <list>
+#include <map>
 #include "connection_wrapper.hpp"
 
 extern "C" {
@@ -11,10 +12,13 @@ extern "C" {
 
 class ListenerWrapper {
 	Listener* m_listener;
+	std::list<ConnectionWrapper> connections;
 public:
     ListenerWrapper(int port, int connections_count);
     ~ListenerWrapper();
-    //redzēs kādas funkcijas vajadzēs
+    std::list<ConnectionWrapper>& getConnections();//read connections from listener, then return
+    void removeConnection(ConnectionWrapper* connection);
+    std::map<ConnectionWrapper*,std:vector<std::string>> getReceivedMessages();
 };
 
 #endif

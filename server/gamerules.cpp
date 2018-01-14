@@ -1,4 +1,5 @@
 #include "../shared/gamerules.hpp"
+#include "../shared/string_reader.hpp"
 
 Gamerules::Gamerules(int port) : listener(port,10), 
                                  mainLoop(&Gamerules::handleMainLoop, this), 
@@ -11,7 +12,7 @@ Gamerules::~Gamerules() {}
 void Gamerules::cleanup() {
     state = GameState::LOBBY;
     world.cleanup();
-    world.loadMap(loadMapFromFile(MAP_FILE));
+    world.loadMapFromFile(MAP_FILE);
     volatileEntityManager.cleanup();
     players.clear();
 }
@@ -41,7 +42,7 @@ void Gamerules::handleLobbyState() {
 void Gamerules::handleInitState() {
     std::unique_lock<std::mutex> lock(mutex, std::defer_lock);
     int readyCount = countReady();
-    if(readyCount == players.size() || (getCurrentTime() - initStart).asSeconds() > 10.0f) {
+    if(readyCount == players.size() || (getCurrentTime() - initStart).asSeconds() > TIMEOUT_DURATION) {
         if(readyCount < players.size()) {
             lock.lock();
             //destroy players that aren't ready
@@ -107,55 +108,6 @@ void Gamerules::handleMainLoop() {
                 break;
         }
     }
-}
-
-void Gamerules::handleParseMessages() {
-    
-}
-
-std::vector<WorldCell> Gamerules::loadMapFromFile(std::string filename) {
-    std::vector<WorldCell> map;
-    //load map from space(newline) seperated file
-    //first two number mapWidth, mapHeight (Space seperated)
-    //newline
-    //space seperated list of numbers
-    return map;
-}
-
-void Gamerules::sendMessageForAllPlayers(const std::string& message) {
-    for(auto& player_it : players) {
-        *player_it.getConnection()->send(message);
-    }
-}
-
-void Gamerules::sendLobbyStatus() {
-    std::string message;
-    //TODO: sagatavot ziņojumu
-    sendMessageForAllPlayers(message);
-}
-
-void Gamerules::sendGameStart() {
-    std::string message;
-    //TODO: sagatavot ziņojumu
-    sendMessageForAllPlayers(message);
-}
-
-void Gamerules::sendMapUpdate() {
-    std::string message;
-    //TODO: sagatavot ziņojumu
-    sendMessageForAllPlayers(message);
-}
-
-void Gamerules::sendGameOver() {
-    std::string message;
-    //TODO: sagatavot ziņojumu
-    sendMessageForAllPlayers(message);
-}
-
-void Gamerules::sendObjects() {
-    std::string message;
-    //TODO: sagatavot ziņojumu
-    sendMessageForAllPlayers(message);
 }
 
 void Gamerules::cleanupPlayers() {

@@ -1,8 +1,10 @@
-typedef enum { 
+typedef enum {
     NOT_CONNECTED = 0,
     LOBBY = 1,
     INIT = 2,
-    GAME = 3
+    GAME = 3,
+    END = 4,
+    CONNECTION_ERROR = 5
 } GameState;
 
 typedef enum {
@@ -19,3 +21,17 @@ typedef enum {
     WALL = 1,
     BOX = 2
 } WorldCell;
+
+typedef enum {
+    JOIN_REQUEST = 1,
+    JOIN_RESPONSE = 2,
+    KEEP_ALIVE = 3,
+    READY = 4,
+    PLAYER_INPUT = 5,
+    DISCONNECT = 6,
+    LOBBY_STATUS = 7,
+    GAME_START = 8,
+    MAP_UPDATE = 9,
+    OBJECTS = 10,
+    GAME_OVER = 11
+} PacketType;

@@ -37,6 +37,11 @@ public:
     ~World();
 
     void loadMap(std::vector<WorldCell>& map,sf::Vector2<int> mapSize);
+    //load map from space(newline) seperated file
+    //first two number mapWidth, mapHeight (Space seperated)
+    //newline
+    //space seperated list of numbers
+    void loadMapFromFile(std::string filename);
     int getWidth() { return mapSize.x; }
     int getHeight() { return mapSize.y; }
     int getCell(sf::Vector2<int> pos) { return mapSize[pos.x + pos.y * mapSize.y]; }

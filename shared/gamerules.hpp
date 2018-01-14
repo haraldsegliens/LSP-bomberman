@@ -11,13 +11,17 @@
 #include "player.hpp"
 #include "volatile_entities_manager.hpp"
 
+#define TIMEOUT_DURATION 10.0f
+
 #ifdef CLIENT
 #include <Time.hpp>
+#include <memory>
 
 #include "comms/connection_wrapper.hpp"
 #include "../client/c_screen.hpp"
 
 #define Gamerules CGamerules
+#define KEEP_ALIVE_PERIOD 1.0f
 
 struct LobbyClient {
     int id;
@@ -53,27 +57,53 @@ class Gamerules {
     void handleInitState();
     void handleGameState();
 
+    sf::Clock clock;
+    sf::Time lastLoopStart;
+    sf::Time deltaTime;
+
 #ifdef CLIENT
-    ConnectionWrapper connection;
+    std::unique_ptr<ConnectionWrapper> connection;
     int myClientId;
     std::vector<LobbyClient> lobbyClients;
     sf::Time lastReceivedMessage;
     std::vector<int> gameOverWinners;
-    CScreen screen;
+    std::unique_ptr<CScreen> screen;
+
+    sf::Time lastKeepAlive;
+    short lastInputState;
+
+    void toConnectionErrorState();
+
+    void sendJoinRequest();
+    void sendKeepAlive();
+    void sendPlayerInput(short inputState);
+
+    void parseJoinResponse(StringReader& reader);
+    void parseLobbyStatus(StringReader& reader);
+    void parseGameStart(StringReader& reader);
+    void parseMapUpdate(StringReader& reader);
+    void parseObjects(StringReader& reader);
+    void parseGameOver(StringReader& reader);
+
 #else
-    sf::Clock clock;
     ListenerWrapper listener;
     sf::Time initStart;
-    sf::Time lastLoopStart;
-    sf::Time deltaTime;
 
     std::vector<WorldCell> loadMapFromFile(std::string filename);
     void sendMessageForAllPlayers(const std::string& message);
+
     void sendLobbyStatus();
     void sendGameStart();
     void sendMapUpdate();
     void sendObjects();
     void sendGameOver();
+
+    void parseJoinRequest(StringReader& reader,ConnectionWrapper* con);
+    void parseKeepAlive(StringReader& reader);
+    void parseReady(StringReader& reader);
+    void parsePlayerInput(StringReader& reader);
+    void parseDisconnect(StringReader& reader);
+
     void cleanupPlayers();
     int countReady();
 #endif
@@ -95,10 +125,6 @@ public:
         return &world;
     }
 
-#ifdef CLIENT
-    void ready();
-    void disconnectClient();
-#else
     sf::Time getCurrentTime() {
         return clock.getElapsedTime();
     }
@@ -106,6 +132,10 @@ public:
     sf::Time getDeltaTime() {
         return deltaTime;
     }
+
+#ifdef CLIENT
+    void ready();
+    void disconnectClient();
 #endif
 };
 
