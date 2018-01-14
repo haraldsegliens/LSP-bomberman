@@ -19,9 +19,9 @@ class Player {
     // Vector2<float> position;
     // Vector2<int> direction;
     // Powerup powerup;
-    int power;
-    int speed;
-    int maxDynamiteCount;
+    // int power;
+    // int speed;
+    // int maxDynamiteCount;
 
     sf::Texture playerTexture;
     // ConnectionWrapper* playerConnection;
@@ -36,11 +36,15 @@ class Player {
 
 
 public:
-    int id;
+    short id;
     std::string name;
     short x;
     short y;
-    char startDirection;
+    char direction;
+    short power;
+    short speed;
+    short maxDynamiteCount;
+    char activePowerup;
 
     // Player();
     // ~Player();
@@ -56,10 +60,15 @@ public:
     bool isDead() { return dead; }
     // ConnectionWrapper* getConnection() { return playerConnection; }
 
-    void setId(char id) { this->id = id; }
+    void setId(short id) { this->id = id; }
     void setName(char* name) { this->name = name; }
     void setPosition(short x, short y) { this->x = x; this->y = y; }
-    void setStartDirection(char direction) { this->startDirection = direction; }
+    void setDirection(char direction) { this->direction = direction; }
+    void setActivePowerUp(char powerUp) { this->activePowerup = powerUp; }
+    void setPower(short power) { this->power = power; }
+    void setSpeed(short speed) { this->speed = speed; }
+    void setDynamiteCount(short count) { this->maxDynamiteCount = count; }
+    void setDead() { this->dead = true; }
 };
 
 class World 
@@ -67,19 +76,21 @@ class World
     public:
         int sizeX;
         int sizeY;
-        char* worldTiles;
+        vector<vector<short>> worldTiles;
         char dynamiteTime;
         char dynamiteSpeed;
 
         void setSizeX(char sizeX) { this->sizeX = sizeX; }
         void setSizeY(char sizeY) { this->sizeY = sizeY;  }
-        void setWorldTiles(char* worldTiles) { this->worldTiles = worldTiles; }
+        void setWorldTiles(vector<vector<short>> &worldTiles) { this->worldTiles = worldTiles; }
         void setDynamiteTime(char dynamiteTime) { this->dynamiteTime = dynamiteTime; }
         void setDynamiteSpeed(char dynamiteSpeed) { this->dynamiteSpeed = dynamiteSpeed; }
+        void updateTile(short tileX, short tileY, short newValue ) { this->worldTiles[tileX][tileY] = newValue; }
 };
 
 World world;
 vector<Player> players;
+vector<short> results;
 
 int connectToServer(const char* IP, int PORT)
 {
@@ -247,7 +258,7 @@ void updateLobbyClient(char playerId, char* playerName, bool readyStatus)
 {
     for (int i = 0; i < players.size(); ++i)
     {
-        if(players[i].id == playerId)
+        if(players[i].id == (short)playerId)
         {
             players[i].setName(playerName);
             players[i].setReady(readyStatus);
@@ -256,7 +267,7 @@ void updateLobbyClient(char playerId, char* playerName, bool readyStatus)
         }
         // inserting new player
         Player new_player;
-        new_player.setId(playerId);
+        new_player.setId((short)playerId);
         new_player.setName(playerName);
         new_player.setReady(readyStatus);
         players.push_back(new_player);
@@ -290,7 +301,7 @@ void updateLobbyClientGameStart(char playerId, char* playerName, short x, short 
 {
     for (int i = 0; i < players.size(); ++i)
     {
-        if(players[i].id == playerId)
+        if(players[i].id == (short)playerId)
         {
             players[i].setName(playerName);
             players[i].setReady(true);
@@ -299,16 +310,16 @@ void updateLobbyClientGameStart(char playerId, char* playerName, short x, short 
         }
         // inserting new player
         Player new_player;
-        new_player.setId(playerId);
+        new_player.setId((short)playerId);
         new_player.setName(playerName);
         new_player.setReady(true);
         new_player.setPosition(x, y);
-        new_player.setStartDirection(direction);
+        new_player.setDirection(direction);
         players.push_back(new_player);
     }
 }
 
-void createWorldGameStart(char sizeX, char sizeY, char* worldTiles, char dynamiteTime, char dynamiteSpeed)
+void createWorldGameStart(char sizeX, char sizeY, vector<vector<short>> & worldTiles, char dynamiteTime, char dynamiteSpeed)
 {
     world.setSizeX(sizeX);
     world.setSizeY(sizeY);
@@ -337,17 +348,182 @@ void readGameStartResponse(int socket)
         // updating clients before game
         updateLobbyClientGameStart(playerId[0], playerName, x, y, direction[0]);
     }
+    vector<vector<short>> worldTiles;
     char worldX[1] = {0};
     valread = read(socket, worldX, 1);
     char worldY[1] = {0};
     valread = read(socket, worldY, 1);
-    char worldTiles[(int)worldX[0] * (int)worldY[0]];
-    valread = read(socket, worldTiles, (int)worldX[0] * (int)worldY[0]);
+    for (int i = 0; i < (short)worldX[0]; ++i)
+    {
+        for (int j = 0; j < (short)worldY[0]; ++j)
+        {
+            char tile[1] = {0};
+            valread = read(socket, tile, 1);
+            worldTiles[(short)i][(short)j] = (short)tile[0];
+        }
+    }
     char dynamiteTime[1] = {0};
     valread = read(socket, dynamiteTime, 1);
     char dynamiteSpeed[1] = {0};
     valread = read(socket, dynamiteSpeed, 1);
     createWorldGameStart(worldX[0], worldY[0], worldTiles, dynamiteTime[0], dynamiteSpeed[0]);
+}
+
+void readMapUpdateResponse(int socket)
+{
+    int valread;
+    short changes;
+    valread = read(socket, &changes, 2);
+    for (int i = 0; i < changes; ++i)
+    {
+        char tileX[1] = {0};
+        valread = read(socket, tileX, 1);
+        char tileY[1] = {0};
+        valread = read(socket, tileY, 1);
+        char newValue[1] = {0};
+        valread = read(socket, newValue, 1);
+        world.updateTile((short)tileX[0], (short)tileY[0], (short)newValue[0]);
+    }
+}
+
+void updateGameTimer(short time)
+{
+
+}
+
+void addDynamites(short x, short y)
+{
+
+}
+
+void addFlames(short x, short y)
+{
+
+}
+
+void addPowerUps(short x, short y, short type)
+{
+
+}
+
+void updateAlivePlayer(char playerId, short x, short y, char direction, char activePowerup, char power, char speed, char dynamiteCount)
+{
+    for (int i = 0; i < players.size(); ++i)
+    {
+        if(players[i].id == (short)playerId)
+        {
+            players[i].setPosition(x, y);
+            players[i].setDirection(direction);
+            players[i].setActivePowerUp(activePowerup);
+            players[i].setPower((short)power);
+            players[i].setSpeed((short)speed);
+            players[i].setDynamiteCount((short)dynamiteCount);
+
+            return;
+        }
+    }
+}
+
+void updateDeadPlayer(char playerId)
+{
+    for (int i = 0; i < players.size(); ++i)
+    {
+        if(players[i].id == (short)playerId)
+        {
+            players[i].setDead();
+
+            return;
+        }
+    }
+}
+
+void readObjectsResponse(int socket)
+{
+    int valread;
+    short gameTimer;
+    valread = read(socket, &gameTimer, 2);
+    updateGameTimer(gameTimer);
+    // reading and updating dynamites
+    char dynamiteCount[1] = {0};
+    valread = read(socket, dynamiteCount, 1);
+    for (int i = 0; i < (short)dynamiteCount[0]; ++i)
+    {
+        short x;
+        valread = read(socket, &x, 2);
+        short y;
+        valread = read(socket, &y, 2);
+        addDynamites(x, y);
+    }
+    // reading and updating flames
+    char flameCount[1] = {0};
+    valread = read(socket, flameCount, 1);
+    for (int i = 0; i < (short)flameCount[0]; ++i)
+    {
+        char x[1] = {0};
+        valread = read(socket, x, 1);
+        char y[1] = {0};
+        valread = read(socket, y, 1);
+        addFlames((short)x[0], (short)y[0]);
+    }
+    // reading and updating power ups
+    char powerUpCount[1] = {0};
+    valread = read(socket, powerUpCount, 1);
+    for (int i = 0; i < (short)powerUpCount[0]; ++i)
+    {
+        char x[1] = {0};
+        valread = read(socket, x, 1);
+        char y[1] = {0};
+        valread = read(socket, y, 1);
+        char type[1] = {0};
+        valread = read(socket, type, 1);
+        addPowerUps((short)x[0], (short)y[0], (short)type[0]);
+    }
+    // reading and updating player statuses
+    char playerCount[1] = {0};
+    valread = read(socket, playerCount, 1);
+    for (int i = 0; i < (short)playerCount[0]; ++i)
+    {
+        char playerId[1] = {0};
+        valread = read(socket, playerId, 1);
+        char playerDead[1] = {0};
+        if((short)playerDead[0] == 0)
+        {
+            valread = read(socket, playerDead, 1);
+            short x;
+            valread = read(socket, &x, 2);
+            short y;
+            valread = read(socket, &y, 2);
+            char direction[1] = {0};
+            valread = read(socket, direction, 1);
+            char activePowerup[1] = {0};
+            valread = read(socket, activePowerup, 1);
+            char power[1] = {0};
+            valread = read(socket, power, 1);
+            char speed[1] = {0};
+            valread = read(socket, speed, 1);
+            char dynamiteCount[1] = {0};
+            valread = read(socket, dynamiteCount, 1);
+            // updating player when its alive
+            updateAlivePlayer(playerId[0], x, y, direction[0], activePowerup[0], power[0], speed[0], dynamiteCount[0]);
+        }
+        else
+        {
+            updateDeadPlayer(playerId[0]);
+        }
+    }
+}
+
+void readGameOverResponse(int socket)
+{
+    int valread;
+    char playerCount[1] = {0};
+    valread = read(socket, playerCount, 1);
+    for (int i = 0; i < (int)playerCount[0]; ++i)
+    {
+        char playerId[1] = {0};
+        valread = read(socket, playerId, 1);
+        results.push_back((short)playerId[0]);
+    }
 }
 
 int main()
