@@ -10,8 +10,7 @@
 #include "world.hpp"
 #include "player.hpp"
 #include "volatile_entities_manager.hpp"
-
-#define TIMEOUT_DURATION 10.0f
+#include "dynamite.hpp"
 
 #ifdef CLIENT
 #include <Time.hpp>
@@ -30,11 +29,42 @@ struct LobbyClient {
 };
 #else
 #include <Clock.hpp>
+#include <Rect.hpp>
+#include <list>
+#include <map>
 
 #include "comms/listener_wrapper.hpp"
 
 #define MAP_FILE "level1.map"
 #define ROUND_TIME 90
+
+struct SurroundingInfo {
+    sf::Vector2<float> position;
+    std::map<sf::Vector2<int>,WorldCell> worldCells;
+    std::vector<VolatileEntity*> entities;
+    std::vector<Dynamite*> dynamites;
+    std::vector<Player*> players;
+
+    sf::Vector2<int> findWorldCell(WorldCell cell) {
+        for(auto& it : worldCells) {
+            if(it.second == cell)
+                return it.first;
+        }
+        return sf::Vector2<int>(-1,-1);
+    }
+
+    bool containsWorldCell(WorldCell cell) {
+        return findWorldCell(cell) != sf::Vector2<int>(-1,-1);
+    }
+
+    VolatileEntity* findVolatileEntity(VolatileEntityType type) {
+        for(auto& it : entities) {
+            if(*it.type == type)
+                return &*it;
+        }
+        return nullptr;
+    }
+};
 #endif
 
 class Gamerules {
@@ -47,6 +77,11 @@ class Gamerules {
     World world;
     VolatileEntityManager volatileEntityManager;
     std::vector<Player> players;
+#ifdef CLIENT
+    std::vector<Dynamite> dynamites;
+#else
+    std::list<Dynamite> dynamites;
+#endif
 
     //threads and mutex
     std::mutex mutex;
@@ -90,7 +125,6 @@ class Gamerules {
     ListenerWrapper listener;
     sf::Time initStart;
 
-    std::vector<WorldCell> loadMapFromFile(std::string filename);
     void sendMessageForAllPlayers(const std::string& message);
 
     void sendLobbyStatus();
@@ -107,6 +141,12 @@ class Gamerules {
 
     void cleanupPlayers();
     int countReady();
+
+    Rect<float> getSurroundingBox(Vector2<float> _position) {
+        return Rect<float>(_position.x - 0.5f,_position.y - 0.5f,
+                           _position.x + 0.5f,_position.y + 0.5f);
+    }
+    std::vector<sf::Vector2<int>> getSurroundingCoords(Rect<float> box);
 #endif
 
 public:
@@ -126,6 +166,10 @@ public:
         return &world;
     }
 
+    VolatileEntitiesManager* getVolatileEntitiesManager() {
+        return &volatileEntityManager;
+    }
+
     sf::Time getCurrentTime() {
         return clock.getElapsedTime();
     }
@@ -134,9 +178,25 @@ public:
         return deltaTime;
     }
 
+    Dynamite* getDynamiteInPosition(sf::Vector2<int> position) {
+        for(auto& it : dynamites) {
+            if(sf::Vector2<int>(*it.getPosition()) == position) {
+                return *it;
+            }
+        }
+        return nullptr;
+    }
+
 #ifdef CLIENT
     void ready();
     void disconnectClient();
+#else
+    Dynamite* createDynamite(sf::Vector2<float> _position, Player* _owner) {
+        dynamites.push_back(Dynamite(_position,_owner));
+        return &dynamites.back();
+    }
+
+    SurroundingInfo scanSurrounding(Gamerules* gamerules, Vector2<float> _position);
 #endif
 };
 

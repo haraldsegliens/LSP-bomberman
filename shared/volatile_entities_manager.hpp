@@ -21,9 +21,8 @@ struct VolatileEntityEvent {
 
 typedef enum { 
     EMPTY = 0,
-    DYNAMITE = 1,
-    FIRE = 2,
-    POWERUP = 3
+    FIRE = 1,
+    POWERUP = 2
 } VolatileEntityType;
 
 struct VolatileEntity {
@@ -60,7 +59,6 @@ public:
     void update(Gamerules* gamerules);
     void deleteEntity(VolatileEntity* entity);
     void addEvent(VolatileEntity* entity, sf::Time time);
-    VolatileEntity* createDynamite(sf::Vector2<int> pos, int power, bool isRemote);
     VolatileEntity* createFire(sf::Vector2<int> pos);
     VolatileEntity* createPowerup(sf::Vector2<int> pos, Powerup powerupType);
 #endif

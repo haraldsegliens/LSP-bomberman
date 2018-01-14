@@ -6,6 +6,7 @@
 #include <Vector2.hpp>
 #include "shared_enums.hpp"
 #include "gamerules.hpp"
+#include <vector>
 
 #ifdef CLIENT
 #define Player CPlayer
@@ -20,8 +21,8 @@
 class Player {
     int id;
     std::string name;
-    Vector2<float> position;
-    Vector2<int> direction;
+    sf::Vector2<float> position;
+    sf::Vector2<int> direction;
     Powerup powerup;
     int power;
     int speed;
@@ -30,22 +31,54 @@ class Player {
 #ifdef CLIENT
     sf::Texture playerTexture;
 #else
+    typedef enum {
+        KEY_PRESSED
+        NONE
+
+    } InputBitState;
+
     ConnectionWrapper* playerConnection;
     sf::Time lastKeepAlive;
     bool ready;
     bool dead;
     bool destroy;
-    std::list<VolatileEntity*> currentDynamites;
-    sf::Time startedTemporaryPowerup;
+    std::list<Dynamite*> currentDynamites;
+    sf::Time endTemporaryPowerup;
     short playerInput;
     short lastProcessedPlayerInput;
+
+    void handleSurroundings(Gamerules* gamerules, SurroundingInfo& info);
+    void handlePlayerInput(Gamerules* gamerules, SurroundingInfo& info);
+    void movePlayer(Gamerules* gamerules);
+    float getUnitSpeed() {
+        return PLAYER_BASE_SPEED + PLAYER_INCREASE_SPEED * speed;
+    }
+
+    bool isBitSet(short value,PlayerInputBits bit) {
+        return (bool)(value >> bit) & 1U;
+    }
+
+    bool isOneTimePressed(PlayerInputBits bit) {
+        return isBitSet(playerInput,bit) && !isBitSet(lastProcessedPlayerInput,bit);
+    }
+
+    bool isPressed(PlayerInputBits bit) {
+        return isBitSet(playerInput,bit)
+    }
+
 #endif
 public:
-    Player();
+#ifdef SERVER
+    Player(int _id,std::string _name,sf::Vector2<float> _position,ConnectionWrapper* _con);
+#else
+    Player(int _id,std::string _name,sf::Vector2<float> _position);
+#endif
     ~Player();
 
     bool isReady() { return ready; }
     void setReady(bool ready) { this->ready = ready; }
+
+    Vector2f getPosition() {return position;}
 
 #ifdef CLIENT
     void draw(sf::RenderWindow& window);
@@ -56,6 +89,9 @@ public:
     bool mustDestroy() { return destroy; }
     bool isDead() { return dead; }
     ConnectionWrapper* getConnection() { return playerConnection; }
+    bool isTemporaryPowerup() { return powerup == Powerup::REMOTE_DETONATOR || powerup == Powerup::DYNAMITE_KICK; }
+
+    void removeDynamite(Dynamite* dynamite);
 #endif
 };
 

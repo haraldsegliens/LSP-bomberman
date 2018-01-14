@@ -14,6 +14,7 @@ void CGamerules::cleanup() {
     world.cleanup();
     volatileEntityManager.cleanup();
     players.clear();
+    dynamites.clear();
     myClientId = -1;
     lastInputState = 0;
     lobbyClients.clear();
