@@ -2,13 +2,15 @@
 #include "../shared/string_reader.hpp"
 #include <math.h>
 
-Gamerules::Gamerules(int port) : listener(port,10), 
-                                 mainLoop(&Gamerules::handleMainLoop, this), 
+Gamerules::Gamerules(int port) : mainLoop(&Gamerules::handleMainLoop, this), 
                                  parseMessages(&Gamerules::handleParseMessages, this) {
+    listener = createListener(port,10)
     cleanup();
 }
 
-Gamerules::~Gamerules() {}
+Gamerules::~Gamerules() {
+    freeListener(listener);
+}
 
 void Gamerules::cleanup() {
     state = GameState::LOBBY;

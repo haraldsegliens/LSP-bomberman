@@ -12,11 +12,14 @@
 #include "volatile_entities_manager.hpp"
 #include "dynamite.hpp"
 
+extern "C" {
+    #include "comms/comms.h"
+}
+
 #ifdef CLIENT
 #include <Time.hpp>
 #include <memory>
 
-#include "comms/connection_wrapper.hpp"
 #include "../client/c_screen.hpp"
 
 #define Gamerules CGamerules
@@ -32,8 +35,6 @@ struct LobbyClient {
 #include <Rect.hpp>
 #include <list>
 #include <map>
-
-#include "comms/listener_wrapper.hpp"
 
 #define MAP_FILE "level1.map"
 #define ROUND_TIME 90
@@ -97,7 +98,7 @@ class Gamerules {
     sf::Time deltaTime;
 
 #ifdef CLIENT
-    std::unique_ptr<ConnectionWrapper> connection;
+    Connection* connection;
     int myClientId;
     std::vector<LobbyClient> lobbyClients;
     sf::Time lastReceivedMessage;
@@ -109,9 +110,13 @@ class Gamerules {
 
     void toConnectionErrorState();
 
+    std::vector<std::string>> getMessages();
+    void sendMessage(std::string message);
+
     void sendJoinRequest();
     void sendKeepAlive();
     void sendReady();
+    void sendDisconnect();
     void sendPlayerInput(short inputState);
 
     void parseJoinResponse(StringReader& reader);
@@ -122,9 +127,10 @@ class Gamerules {
     void parseGameOver(StringReader& reader);
 
 #else
-    ListenerWrapper listener;
+    Listener* listener;
     sf::Time initStart;
 
+    std::map<Connection*,std::vector<std::string>> getMessages();
     void sendMessageForAllPlayers(const std::string& message);
 
     void sendLobbyStatus();
@@ -133,7 +139,7 @@ class Gamerules {
     void sendObjects();
     void sendGameOver();
 
-    void parseJoinRequest(StringReader& reader,ConnectionWrapper* con);
+    void parseJoinRequest(StringReader& reader,Connection* con);
     void parseKeepAlive(StringReader& reader);
     void parseReady(StringReader& reader);
     void parsePlayerInput(StringReader& reader);

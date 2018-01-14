@@ -37,7 +37,7 @@ class Player {
 
     } InputBitState;
 
-    ConnectionWrapper* playerConnection;
+    Connection* playerConnection;
     sf::Time lastKeepAlive;
     bool ready;
     bool dead;
@@ -69,7 +69,7 @@ class Player {
 #endif
 public:
 #ifdef SERVER
-    Player(int _id,std::string _name,sf::Vector2<float> _position,ConnectionWrapper* _con);
+    Player(int _id,std::string _name,sf::Vector2<float> _position,Connection* _con);
 #else
     Player(int _id,std::string _name,sf::Vector2<float> _position);
 #endif
@@ -88,7 +88,7 @@ public:
 
     bool mustDestroy() { return destroy; }
     bool isDead() { return dead; }
-    ConnectionWrapper* getConnection() { return playerConnection; }
+    Connection* getConnection() { return playerConnection; }
     bool isTemporaryPowerup() { return powerup == Powerup::REMOTE_DETONATOR || powerup == Powerup::DYNAMITE_KICK; }
 
     void removeDynamite(Dynamite* dynamite);

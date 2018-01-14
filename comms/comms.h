@@ -53,7 +53,7 @@ void freeConnection(Connection* con);
 struct ConListNode_t {
     struct ConListNode_t* next;
     Connection* con;
-};
+} ConListNode;
 
 void addConList(ConList* list, struct ConListNode_t* node);
 void removeConList(ConList* list, Connection* con);

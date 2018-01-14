@@ -4,11 +4,13 @@ CGamerules::CGamerules(std::string addr, int port) : mainLoop(&CGamerules::handl
                                                      parseMessages(&CGamerules::handleParseMessages, this) {
     cleanup();
     state = GameState::NOT_CONNECTED;
-    connection = std::make_unique<ConnectionWrapper>(ConnectionWrapper(addr,port));
+    connection = newClientConnection(addr.c_str(),port);
     sendJoinRequest();
 }
 
-CGamerules::~CGamerules() {}
+CGamerules::~CGamerules() {
+    freeConnection(connection);
+}
 
 void CGamerules::cleanup() {
     world.cleanup();
@@ -42,7 +44,7 @@ void CGamerules::handleInitState() {
 void CGamerules::handleGameState() {
     WindowEvents events = screen->draw(this);
     if(events.windowClosed) {
-        toConnectionErrorState();
+        sendDisconnect();
     } else if(lastInputState != events.inputState) {
         sendPlayerInput(events.inputState);
     }
@@ -73,12 +75,15 @@ void CGamerules::ready() {
 }
 
 void CGamerules::disconnectClient() {
-
+    sendDisconnect();
+    toConnectionErrorState();
+    state = GameState::END;
 }
 
 void CGamerules::toConnectionErrorState() {
     state = GameState::CONNECTION_ERROR;
     screen.reset(nullptr);
-    connection.reset(nullptr);
+    freeConnection(connection);
+    connection = nullptr;
     cleanup();
 }
