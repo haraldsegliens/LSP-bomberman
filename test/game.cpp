@@ -7,8 +7,55 @@
 #include <arpa/inet.h>
 #include <string.h>
 #include <bitset>
+#include <unistd.h>
 
 using namespace std;
+
+char myPlayerId;
+
+class Player {
+    // int id;
+    // std::string name;
+    // Vector2<float> position;
+    // Vector2<int> direction;
+    // Powerup powerup;
+    int power;
+    int speed;
+    int maxDynamiteCount;
+
+    sf::Texture playerTexture;
+    // ConnectionWrapper* playerConnection;
+    sf::Time lastKeepAlive;
+    bool ready;
+    bool dead;
+    bool destroy;
+    // std::list<VolatileEntity*> currentDynamites;
+    sf::Time startedTemporaryPowerup;
+    short playerInput;
+    short lastProcessedPlayerInput;
+public:
+    int id;
+    std::string name;
+
+    // Player();
+    // ~Player();
+
+    bool isReady() { return ready; }
+    void setReady(bool ready) { this->ready = ready; }
+
+    void draw(sf::RenderWindow& window);
+    // void updateKeepAlive(Gamerules* gamerules);
+    // void update(Gamerules* gamerules);
+
+    bool mustDestroy() { return destroy; }
+    bool isDead() { return dead; }
+    // ConnectionWrapper* getConnection() { return playerConnection; }
+
+    void setId(char id){ this->id = id; }
+    void setName(char* name) { this->name = name; }
+};
+
+vector<Player> players;
 
 int connectToServer(const char* IP, int PORT)
 {
@@ -52,20 +99,24 @@ void sendJoinRequest(int socket, string playerName)
     {
         playerName += '\0';
     }
-    string request = '1'+playerName.substr(0,23);
+    string request; 
+    request += (char)(1);
+    request += playerName.substr(0,23);
     send(socket, request.data(), request.length(), 0);
 }
 
 void sendKeepAlive(int socket, char playerId)
 {
-    string request = "3";
+    string request;
+    request += (char)3;
     request += playerId;
     send(socket, request.data(), 2, 0);
 }
 
 void sendReady(int socket, char playerId)
 {
-    string request = "4";
+    string request;
+    request += (char)4;
     request += playerId;
     send(socket, request.data(), 2, 0);
 }
@@ -119,11 +170,96 @@ short bindActionToShort(sf::Event::KeyEvent keyPressed)
 
 void sendPlayerInput(int socket, char playerId, short action)
 {
-    string request = "4";
+    string request;
+    request += (char)5;
     request += playerId;
     request += (action & 0xff);
     request += ((action >> 8) & 0xff);
     send(socket, request.data(), 4, 0);
+}
+
+void disconnect(int socket, char playerId)
+{
+    string request;
+    request += (char)6;
+    request += playerId;
+    send(socket, request.data(), 2, 0);
+}
+
+void setMyPlayerId(char playerId)
+{
+    myPlayerId = playerId;
+}
+
+void readJoinResponse(int socket)
+{
+    int valread;
+    char responseCode[1] = {0};
+    valread = read(socket, responseCode, 1);
+    switch ((int)responseCode[0])
+    {
+        case 0 :
+        {
+            char playerId[1] = {0};
+            valread = read(socket, playerId, 1);
+            // set player ID
+            setMyPlayerId(playerId[0]);
+            break;
+        }
+        case 1 :
+        {
+            // server is now running a game
+            break;
+        }
+        case 2 :
+        {
+            // server is full
+            break;
+        }
+    }
+}
+
+void updateLobbyClient(char playerId, char* playerName, bool readyStatus)
+{
+    for (int i = 0; i < players.size(); ++i)
+    {
+        if(players[i].id == playerId)
+        {
+            players[i].setName(playerName);
+            players[i].setReady(readyStatus);
+
+            return;
+        }
+        // inserting new player
+        Player new_player;
+        new_player.setId(playerId);
+        new_player.setName(playerName);
+        new_player.setReady(readyStatus);
+        players.push_back(new_player);
+    }
+}
+
+void readLobbyStatusResponse(int socket)
+{
+    int valread;
+    char playerCount[1] = {0};
+    valread = read(socket, playerCount, 1);
+    for (int i = 0; i < (int)playerCount[0]; ++i)
+    {
+        bool readyStatusBool = false;
+        char playerId[1] = {0};
+        valread = read(socket, playerId, 1);
+        char playerName[23] = {0};
+        valread = read(socket, playerName, 23);
+        char readyStatus[1] = {0};
+        valread = read(socket, readyStatus, 1);
+        if((int)readyStatus[0] == 1)
+        {
+            readyStatusBool = true;
+        }
+        // updating lobby clients
+        updateLobbyClient(playerId[0], playerName, readyStatusBool);
+    }
 }
 
 int main()
