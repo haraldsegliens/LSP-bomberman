@@ -41,6 +41,7 @@ public:
 
     int getWidth() { return mapSize.x; }
     int getHeight() { return mapSize.y; }
+    WorldCell getCell(int i) { return mapSize[i]; }
     WorldCell getCell(sf::Vector2<int> pos) { return mapSize[pos.x + pos.y * mapSize.x]; }
     void cleanup();
 #ifdef CLIENT
@@ -53,6 +54,15 @@ public:
     void startClosing() { closing = true; }
     bool isClosing() { return closing; }
     void changeCell(sf::Vector2<int> pos, WorldCell value, Gamerules* gamerules);
+
+    sf::Vector2<int> getSpawnPoint(int i) {
+        return playerSpawnPoints[i];
+    }
+    const std::vector<WorldChange>& popChanges() {
+        std::vector<WorldChange> popChanges = changes;
+        changes.clear();
+        return popChanges;
+    }
 #endif
 };
 

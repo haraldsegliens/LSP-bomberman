@@ -80,6 +80,8 @@ public:
 
     int getId() { return id; } 
 
+    std::string const& getName() { return name; }
+
     sf::Vector2f getPosition() {return position;}
     void setPosition(sf::Vector2f a) {
         position = a;
@@ -119,11 +121,25 @@ public:
     void updateKeepAlive(Gamerules* gamerules);
     void update(Gamerules* gamerules);
 
+    void setKeepAliveTime(sf::Time time) {
+        lastKeepAlive = time;
+    }
+
+    void setDestroy(bool _destroy) { destroy = _destroy; }
     bool mustDestroy() { return destroy; }
     Connection* getConnection() { return playerConnection; }
     bool isTemporaryPowerup() { return powerup == Powerup::REMOTE_DETONATOR || powerup == Powerup::DYNAMITE_KICK; }
 
     void removeDynamite(Dynamite* dynamite);
+
+    bool isReady() {return ready;}
+    void setReady(bool a) {
+        ready = a;
+    }
+
+    void setInputState(short a) {
+        playerInput = a;
+    }
 #endif
 };
 

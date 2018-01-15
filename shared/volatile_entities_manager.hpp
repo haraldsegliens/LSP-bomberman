@@ -51,6 +51,20 @@ public:
     }
     void cleanup();
 
+    std::vector<sf::Vector2i> getAllPositionsWithType(VolatileEntityType type) {
+        std::vector<sf::Vector2i> result;
+        for(int y = 0; y < gamerules->getWorld()->getHeight(); y++) {
+            for(int x = 0; x < gamerules->getWorld()->getWidth(); x++) {
+                sf::Vector2<int> pos(x,y);
+                VolatileEntity* entity = get(pos);
+                if(entity->type == type) {
+                    result.push_back(pos);
+                }
+            }
+        }
+        return result;
+    }
+
 #ifdef CLIENT
     void draw(sf::RenderWindow& window);
     void clear();

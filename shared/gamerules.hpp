@@ -5,6 +5,7 @@
 #include <vector>
 #include <thread>
 #include <mutex>
+#include <algorithm>
 
 #include "shared_enums.hpp"
 #include "world.hpp"
@@ -103,6 +104,45 @@ class Gamerules {
         return nullptr;
     }
 
+    int fromFloatToDFloat(float a) {
+        return static_cast<int>(a * 10.0f);
+    }
+
+    sf::Vector2<int> getDirectionFromNumber(int i) {
+        if(i == 0) {
+            return sf::Vector2<int>(0,-1);
+        } else if(i == 1) {
+            return sf::Vector2<int>(1,0);
+        } else if(i == 2) {
+            return sf::Vector2<int>(0,1);
+        } else {
+            return sf::Vector2<int>(-1,0);
+        }
+    }
+
+    int getNumberFromDirection(sf::Vector2<int> dir) {
+        if(dir.x == 0) {
+            if(dir.y == 1) {
+                return 2;
+            } else {
+                return 0;
+            }
+        } else {
+            if(dir.x == 1) {
+                return 1;
+            } else {
+                return 3;
+            }
+        }
+    }
+
+    std::string from2ByteIntegerToString(int i) {
+        std::string a;
+        a += (char)(_x & 0xff);
+        a += (char)((_x >> 8) & 0xff);
+        return a;
+    }
+
 #ifdef CLIENT
     Connection* connection;
     int myClientId;
@@ -119,17 +159,6 @@ class Gamerules {
 
     std::vector<std::string>> getMessages();
     void sendMessage(std::string message);
-    sf::Vector2<int> getDirectionFromNumber(int i) {
-        if(i == 0) {
-            return sf::Vector2<int>(0,-1);
-        } else if(i == 0) {
-            return sf::Vector2<int>(1,0);
-        } else if(i == 0) {
-            return sf::Vector2<int>(0,1);
-        } else {
-            return sf::Vector2<int>(-1,0);
-        }
-    }
 
     void sendJoinRequest();
     void sendKeepAlive();
@@ -153,12 +182,15 @@ class Gamerules {
 
     std::map<Connection*,std::vector<std::string>> getMessages();
     void sendMessageForAllPlayers(const std::string& message);
+    void sendMessage(Connection* con, std::string message);
 
     void sendLobbyStatus();
     void sendGameStart();
     void sendMapUpdate();
     void sendObjects();
     void sendGameOver();
+    void sendJoinResponse(int player_id, Connection* con);
+    void sendErrorJoinResponse(int code, Connection* con);
 
     void parseJoinRequest(StringReader& reader,Connection* con);
     void parseKeepAlive(StringReader& reader);
@@ -174,6 +206,22 @@ class Gamerules {
                            _position.x + 0.5f,_position.y + 0.5f);
     }
     std::vector<sf::Vector2<int>> getSurroundingCoords(Rect<float> box);
+
+    int findFreePlayerId() {
+        for(int i = 0; i < 4; i++) {
+            bool found = false;
+            for(Player& player : players) {
+                if(player.getId() == i) {
+                    found = true;
+                    break;
+                }
+            }
+            if(!found) {
+                return i;
+            }
+        }
+        return 5;
+    }
 #endif
 
 public:
