@@ -1,12 +1,12 @@
 #include "../shared/gamerules.hpp"
 #include <iostream>
 
-void CGamerules::handleParseMessages() {
+void CGamerules::parseMessages() {
     while(true) {
         auto messages = getMessages();
         for(auto msg : messages) {
             StringReader reader(msg);
-            PacketType packetId = (PacketType)reader.getUnsignedChar();
+            PacketType packetId = (PacketType)reader.getBinaryNumber(1);
             switch(packetId) {
                 case PacketType::JOIN_RESPONSE:
                     parseJoinResponse(reader,pair.first);
@@ -45,30 +45,29 @@ void CGamerules::sendJoinRequest() {
 void CGamerules::sendKeepAlive() {
     std::string message;
     message += (char)PacketType.KEEP_ALIVE;
-    request += myClientId;
+    message += (char)myClientId;
     sendMessage(message);
 }
 
 void CGamerules::sendReady() {
     std::string message;
     message += (char)PacketType.READY;
-    request += myClientId;
+    message += (char)myClientId;
     sendMessage(message);
 }
 
 void CGamerules::sendDisconnect() {
     std::string message;
     message += (char)PacketType.DISCONNECT;
-    request += myClientId;
+    message += (char)myClientId;
     sendMessage(message);
 }
 
 void CGamerules::sendPlayerInput(short inputState) {
     std::string message;
-    request += (char)PacketType.PLAYER_INPUT;
-    request += myClientId;
-    request += (inputState & 0xff);
-    request += ((inputState >> 8) & 0xff);
+    message += (char)PacketType.PLAYER_INPUT;
+    message += (char)myClientId;
+    message += from2ByteIntegerToString((int)inputState)
     sendMessage(message);
 }
 
@@ -172,6 +171,10 @@ void CGamerules::parseObjects(StringReader& reader) {
     }
     if(state == GameState::GAME) {
         dynamites.clear();
+
+        int timer = reader.getBinaryNumber(2);
+        endTime = getCurrentTime() + sf::seconds(reader.getBinaryNumber(2));
+
         int dynamiteCount = reader.getBinaryNumber(1);
         for(int i = 0; i < dynamiteCount; i++) {
             float _x = reader.getDFloat(2);
@@ -220,6 +223,14 @@ void CGamerules::parseObjects(StringReader& reader) {
             }
         }
 
+        //setting dead those players that werent found in this packet
+        auto it = players.begin();
+        while(it != players.end()) {
+            if(std::find(playerIds.begin(),playerIds.end(),*it.getId()) == playerIds.end()) {
+                *it->setDead(true);
+            }
+        }
+
         lastReceivedMessage = getCurrentTime();
     }
 }
@@ -241,9 +252,9 @@ std::vector<std::string> Gamerules::getMessages() {
     return connection_messages;
 }
 
-void sendMessage(std::string message) {
+void Gamerules::sendMessage(std::string message) {
     Msg msg;
     msg.buffer = message.c_str();
     msg.buffer_length = message.size();
-    sendConnection(connection);
+    sendConnection(connection,msg);
 }

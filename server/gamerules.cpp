@@ -2,8 +2,7 @@
 #include "../shared/string_reader.hpp"
 #include <math.h>
 
-Gamerules::Gamerules(int port) : mainLoop(&Gamerules::handleMainLoop, this), 
-                                 parseMessages(&Gamerules::handleParseMessages, this) {
+Gamerules::Gamerules(int port) : mainLoop(&Gamerules::handleMainLoop, this) {
     listener = createListener(port,10)
     cleanup();
 }
@@ -22,15 +21,11 @@ void Gamerules::cleanup() {
 }
 
 void Gamerules::handleLobbyState() {
-    std::unique_lock<std::mutex> lock(mutex, std::defer_lock);
     for(auto& player_it : players) {
         *player_it.updateKeepAlive();
     }
 
-    lock.lock();
     cleanupPlayers();
-    lock.unlock();
-
     cleanupDynamites();
 
     sendLobbyStatus();
@@ -46,7 +41,6 @@ void Gamerules::handleLobbyState() {
 }
 
 void Gamerules::handleInitState() {
-    std::unique_lock<std::mutex> lock(mutex, std::defer_lock);
     int readyCount = countReady();
     if(readyCount == players.size() || (getCurrentTime() - initStart).asSeconds() > TIMEOUT_DURATION) {
         if(readyCount < players.size()) {
@@ -73,18 +67,15 @@ void Gamerules::handleInitState() {
 }
 
 void Gamerules::handleGameState() {
-    std::unique_lock<std::mutex> lock(mutex, std::defer_lock);
     world.update(this);
     volatileEntityManager.update(this);
     for(auto& dynamite_it : dynamites) {
         *dynamite_it.update(this);
     }
     
-    lock.lock();
     for(auto& player_it : players) {
         *player_it.update(this);
     }
-    lock.unlock();
 
     sendMapUpdate();
     sendObjects();
@@ -116,6 +107,7 @@ void Gamerules::handleMainLoop() {
                 handleGameState();
                 break;
         }
+        parseMessages();
     }
 }
 

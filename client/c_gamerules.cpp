@@ -1,7 +1,9 @@
 #include "../shared/gamerules.h"
 
-CGamerules::CGamerules(std::string addr, int port,std::string _playerName) : mainLoop(&CGamerules::handleMainLoop, this), 
-                                                     parseMessages(&CGamerules::handleParseMessages, this), playerName(_playerName) {
+CGamerules::CGamerules(std::string addr, 
+                       int port,
+                       std::string _playerName) : mainLoop(&CGamerules::handleMainLoop, this), 
+                                                  playerName(_playerName) {
     cleanup();
     state = GameState::NOT_CONNECTED;
     connection = newClientConnection(addr.c_str(),port);
@@ -53,25 +55,6 @@ void CGamerules::handleGameState() {
         sendPlayerInput(events.inputState);
     }
     handleLobbyState();
-}
-
-void CGamerules::handleMainLoop() {
-    while(true) {
-        deltaTime = getCurrentTime() - lastLoopStart;
-        lastLoopStart += deltaTime;
-
-        switch(state) {
-            case GameState::LOBBY:
-                handleLobbyState();
-                break;
-            case GameState::INIT:
-                handleInitState();
-                break;
-            case GameState::GAME:
-                handleGameState();
-                break;
-        }
-    }
 }
 
 void CGamerules::ready() {
