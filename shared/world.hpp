@@ -1,19 +1,18 @@
-#ifndef WORLD_H
-#define WORLD_H
+#pragma once
 
 #include <vector>
-#include <Vector2.hpp>
+#include <SFML/Graphics.hpp>
 #include "shared_enums.hpp"
 
 #ifdef CLIENT
-#include <RenderWindow.hpp>
-#include <Texture.hpp>
-
 #define World CWorld
-#else
-#include <Time.hpp>
+#endif
+
+class World;
+
 #include "gamerules.hpp"
 
+#ifdef SERVER
 struct WorldChange {
     sf::Vector2<int> position;
     WorldCell value;
@@ -29,7 +28,7 @@ class World {
     bool closing;
     int closingPathIndex;
     std::vector<sf::Vector2<int>> closingPath;
-    sf::Vector2<int> closingPosition
+    sf::Vector2<int> closingPosition;
     sf::Time lastCloseTime;
     std::vector<WorldChange> changes;
     std::vector<sf::Vector2<int>> playerSpawnPoints;
@@ -41,8 +40,8 @@ public:
 
     int getWidth() { return mapSize.x; }
     int getHeight() { return mapSize.y; }
-    WorldCell getCell(int i) { return mapSize[i]; }
-    WorldCell getCell(sf::Vector2<int> pos) { return mapSize[pos.x + pos.y * mapSize.x]; }
+    WorldCell getCell(int i) { return map[i]; }
+    WorldCell getCell(sf::Vector2<int> pos) { return map[pos.x + pos.y * mapSize.x]; }
     void cleanup();
 #ifdef CLIENT
     void draw(sf::RenderWindow& window);
@@ -58,12 +57,10 @@ public:
     sf::Vector2<int> getSpawnPoint(int i) {
         return playerSpawnPoints[i];
     }
-    const std::vector<WorldChange>& popChanges() {
+    std::vector<WorldChange> popChanges() {
         std::vector<WorldChange> popChanges = changes;
         changes.clear();
         return popChanges;
     }
 #endif
 };
-
-#endif

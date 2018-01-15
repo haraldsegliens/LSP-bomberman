@@ -1,7 +1,9 @@
 #ifndef C_SCREEN_H
 #define C_SCREEN_H
 
-#include <SFML/RenderWindow.hpp>
+#include <SFML/Graphics.hpp>
+
+class CScreen;
 
 #include "../shared/gamerules.hpp"
 
@@ -13,7 +15,7 @@ struct WindowEvents {
 class CScreen {
     sf::RenderWindow window;
 
-    short bindActionToShort(sf::Event::KeyEvent keyPressed)
+    short bindActionToShort(sf::Event::KeyEvent keyPressed);
 public:
     CScreen();
     ~CScreen();

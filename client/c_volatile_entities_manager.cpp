@@ -1,6 +1,7 @@
-#include "../shared/c_volatile_entities_manager.hpp"
+#include "../shared/volatile_entities_manager.hpp"
+#include <iostream>
 
-CVolatileEntitiesManager::CVolatileEntitiesManager(Gamerules* _gamerules) {
+CVolatileEntitiesManager::CVolatileEntitiesManager() {
     //SPRITE_CELL_SIZE*SPRITE_CELL_SIZE * 6 sprite
     //uguns un 5 powerupi 1 rindā
     if(!tileMap.loadFromFile("materials/tile.png")) {

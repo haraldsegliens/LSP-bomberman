@@ -1,12 +1,15 @@
-#include "../shared/gamerules.h"
+#include "../shared/gamerules.hpp"
+#include <iostream>
 
-CGamerules::CGamerules(std::string addr, 
-                       int port,
-                       std::string _playerName) : mainLoop(&CGamerules::handleMainLoop, this), 
-                                                  playerName(_playerName) {
+CGamerules::CGamerules(std::string addr, int port, std::string _playerName) : mainLoop(&CGamerules::handleMainLoop, this), 
+                                                                              world(new World()),
+                                                                              volatileEntitiesManager(new VolatileEntitiesManager()),
+                                                                              playerName(_playerName) {
     cleanup();
     state = GameState::NOT_CONNECTED;
-    connection = newClientConnection(addr.c_str(),port);
+    m_addr = new char[addr.size() + 1];
+    strcpy(m_addr,addr.c_str());
+    connection = newClientConnection(m_addr,port);
     sendJoinRequest();
 
     if(!dynamiteTexture.loadFromFile("materials/dynamite.png")) {
@@ -16,11 +19,12 @@ CGamerules::CGamerules(std::string addr,
 
 CGamerules::~CGamerules() {
     freeConnection(connection);
+    delete [] m_addr;
 }
 
 void CGamerules::cleanup() {
-    world.cleanup();
-    volatileEntityManager.cleanup();
+    world->cleanup();
+    volatileEntitiesManager->cleanup();
     players.clear();
     dynamites.clear();
     myClientId = -1;
@@ -76,12 +80,12 @@ void CGamerules::toConnectionErrorState() {
 }
 
 void CGamerules::draw(sf::RenderWindow& window) {
-    world.draw(window);
-    volatileEntityManager.draw(window);
-    for(auto& it : players) {
-        *it.draw(window);
+    world->draw(window);
+    volatileEntitiesManager->draw(window);
+    for(Player& player : players) {
+        player.draw(window);
     }
-    for(auto& it : dynamites) {
-        *it.draw(window);
+    for(Dynamite& dynamite : dynamites) {
+        dynamite.draw(window);
     }
 }

@@ -4,7 +4,7 @@ CDynamite::CDynamite(sf::Vector2<float> _position,
 	                 sf::Texture* _dynamiteTexture) : position(_position), 
 												      dynamiteTexture(_dynamiteTexture) {}
 
-~CDynamite::CDynamite() {}
+CDynamite::~CDynamite() {}
 
 void CDynamite::draw(sf::RenderWindow& window) {
 	sf::RectangleShape rectangle;
