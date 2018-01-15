@@ -1,19 +1,24 @@
 #include "../shared/gamerules.hpp"
+#include "../shared/string_reader.hpp"
+#include <math.h>
 
-Gamerules::Gamerules(int port) : listener(port,10), 
-                                 mainLoop(&Gamerules::handleMainLoop, this), 
+Gamerules::Gamerules(int port) : mainLoop(&Gamerules::handleMainLoop, this), 
                                  parseMessages(&Gamerules::handleParseMessages, this) {
+    listener = createListener(port,10)
     cleanup();
 }
 
-Gamerules::~Gamerules() {}
+Gamerules::~Gamerules() {
+    freeListener(listener);
+}
 
 void Gamerules::cleanup() {
     state = GameState::LOBBY;
     world.cleanup();
-    world.loadMap(loadMapFromFile(MAP_FILE));
+    world.loadMapFromFile(MAP_FILE);
     volatileEntityManager.cleanup();
     players.clear();
+    dynamites.clear();
 }
 
 void Gamerules::handleLobbyState() {
@@ -25,6 +30,8 @@ void Gamerules::handleLobbyState() {
     lock.lock();
     cleanupPlayers();
     lock.unlock();
+
+    cleanupDynamites();
 
     sendLobbyStatus();
     int readyCount = countReady();
@@ -41,7 +48,7 @@ void Gamerules::handleLobbyState() {
 void Gamerules::handleInitState() {
     std::unique_lock<std::mutex> lock(mutex, std::defer_lock);
     int readyCount = countReady();
-    if(readyCount == players.size() || (getCurrentTime() - initStart).asSeconds() > 10.0f) {
+    if(readyCount == players.size() || (getCurrentTime() - initStart).asSeconds() > TIMEOUT_DURATION) {
         if(readyCount < players.size()) {
             lock.lock();
             //destroy players that aren't ready
@@ -69,6 +76,9 @@ void Gamerules::handleGameState() {
     std::unique_lock<std::mutex> lock(mutex, std::defer_lock);
     world.update(this);
     volatileEntityManager.update(this);
+    for(auto& dynamite_it : dynamites) {
+        *dynamite_it.update(this);
+    }
     
     lock.lock();
     for(auto& player_it : players) {
@@ -109,59 +119,21 @@ void Gamerules::handleMainLoop() {
     }
 }
 
-void Gamerules::handleParseMessages() {
-    
-}
-
-std::vector<WorldCell> Gamerules::loadMapFromFile(std::string filename) {
-    std::vector<WorldCell> map;
-    //load map from space(newline) seperated file
-    //first two number mapWidth, mapHeight (Space seperated)
-    //newline
-    //space seperated list of numbers
-    return map;
-}
-
-void Gamerules::sendMessageForAllPlayers(const std::string& message) {
-    for(auto& player_it : players) {
-        *player_it.getConnection()->send(message);
-    }
-}
-
-void Gamerules::sendLobbyStatus() {
-    std::string message;
-    //TODO: sagatavot ziņojumu
-    sendMessageForAllPlayers(message);
-}
-
-void Gamerules::sendGameStart() {
-    std::string message;
-    //TODO: sagatavot ziņojumu
-    sendMessageForAllPlayers(message);
-}
-
-void Gamerules::sendMapUpdate() {
-    std::string message;
-    //TODO: sagatavot ziņojumu
-    sendMessageForAllPlayers(message);
-}
-
-void Gamerules::sendGameOver() {
-    std::string message;
-    //TODO: sagatavot ziņojumu
-    sendMessageForAllPlayers(message);
-}
-
-void Gamerules::sendObjects() {
-    std::string message;
-    //TODO: sagatavot ziņojumu
-    sendMessageForAllPlayers(message);
-}
-
 void Gamerules::cleanupPlayers() {
     for(auto it = players.begin(); it != players.end(); ) {
         if(*it.mustDestroy()) {
             it = players.erase(it);
+        } else {
+            it++;
+        }
+    }
+}
+
+void Gamerules::cleanupDynamites() {
+    for(auto it = dynamites.begin(); it != dynamites.end(); ) {
+        if(*it.mustDestroy()) {
+            *it.owner->removeDynamite(*it);
+            it = dynamites.erase(it);
         } else {
             it++;
         }
@@ -186,4 +158,45 @@ int Gamerules::countAlive() {
         }
     }
     return aliveCount;
+}
+
+std::vector<sf::Vector2<int>> Gamerules::getSurroundingCoords(Rect<float> box) {
+    std::vector<sf::Vector2<int>> coords;
+    int x_max = (int)ceil(box.left+box.width);
+    int y_max = (int)ceil(box.top+box.height);
+    for(int x = (int)box.left; x < x_max; x++) {
+        for(int y = (int)box.top; y < y_max; y++) {
+            coords.push_back(sf::Vector2<int>(x,y));
+        }
+    }
+    return coords;
+}
+
+SurroundingInfo Gamerules::scanSurrounding(Gamerules* gamerules, Vector2<float> _position) {
+    Rect<float> box = getSurroundingBox(_position)
+    std::vector<sf::Vector2<int>> coords = getSurroundingCoords(box);
+    info.position = _position;
+    SurroundingInfo info;
+    for(auto& it : coords) {
+        info.worldCells.insert(std::pair<sf::Vector2<int>,WorldCell>(
+            *it,gamerules->getWorld()->getCell(*it)
+        ));
+        VolatileEntity* entity = gamerules->getVolatileEntitiesManager()->get(*it);
+        if(entity != nullptr) {
+            info.entities.push_back(entity);
+        }
+    }
+
+    for(auto& it : dynamites) {
+        if(box.intersects(getSurroundingBox(*it.getPosition()))){
+           info.dynamites.push_back(*it);
+        }
+    }
+
+    for(auto& it : players) {
+        if(box.intersects(getSurroundingBox(*it.getPosition()))){
+           info.players.push_back(*it);
+        }
+    }
+    return info;
 }

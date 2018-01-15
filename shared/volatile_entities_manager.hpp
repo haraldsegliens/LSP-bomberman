@@ -21,9 +21,8 @@ struct VolatileEntityEvent {
 
 typedef enum { 
     EMPTY = 0,
-    DYNAMITE = 1,
-    FIRE = 2,
-    POWERUP = 3
+    FIRE = 1,
+    POWERUP = 2
 } VolatileEntityType;
 
 struct VolatileEntity {
@@ -31,24 +30,22 @@ struct VolatileEntity {
     Powerup powerupType;
 
 #ifdef SERVER
-    sf:Time createdTime;
-    int dynamitePower;
-    std::vector<std::list<VolatileEntityEvent>::iterator> events;
+    std::list<VolatileEntityEvent>::iterator event;
 #endif
 };
 
 class VolatileEntitiesManager {
-    Gamerules* gamerules;
     std::vector<VolatileEntity> volatileEntitiesMap;//tādā pašā kārtībā, kā World šūnas
+    Gamerules* gamerules;
 #ifdef CLIENT
     sf::Texture tileMap;
 #else
     std::list<VolatileEntityEvent> events;
 #endif
 public:
-    VolatileEntitiesManager(Gamerules* gamerules);
+    VolatileEntitiesManager();
     ~VolatileEntitiesManager();
-
+    void load(Gamerules* _gamerules);
     VolatileEntity* get(sf::Vector2<int> pos) {
         return &volatileEntitiesMap[pos.y * gamerules->getWorld()->getWidth() + pos.x];
     }
@@ -56,13 +53,13 @@ public:
 
 #ifdef CLIENT
     void draw(sf::RenderWindow& window);
+    void clear();
 #else
-    void update(Gamerules* gamerules);
+    void update(Gamerules* _gamerules);
     void deleteEntity(VolatileEntity* entity);
-    void addEvent(VolatileEntity* entity, sf::Time time);
-    VolatileEntity* createDynamite(sf::Vector2<int> pos, int power, bool isRemote);
     VolatileEntity* createFire(sf::Vector2<int> pos);
     VolatileEntity* createPowerup(sf::Vector2<int> pos, Powerup powerupType);
+    std::list<VolatileEntityEvent>::iterator addEvent(VolatileEntity* entity, sf::Time time);
 #endif
 };
 

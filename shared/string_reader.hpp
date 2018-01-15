@@ -16,6 +16,7 @@ public:
     size_t getPos() { return pos; }
     std::string get() { return get(data.size() - pos); }
     void skip(size_t len) { std::string s = get(len); }
+    long getRemainingSize() { return data.size()-pos-1; }
 
     std::string get(size_t len) {
         if (len > data.size() - pos) throw std::invalid_argument( "not enough data available" );
@@ -24,22 +25,33 @@ public:
         return res;
     }
 
-    long getBinaryNumber(size_t len, bool bigEndian = true) {
+    std::string getNullFixedString(size_t len) {
+        std::size_t nullChar = data.find("\0",pos);
+        if(nullChar == std::string::npos) {
+            return get(len);
+        } else if(nullChar-pos < len) {
+            return get(nullChar-pos + 1);
+        } else {
+            return get(len);
+        }
+    }
+
+    float getDFloat(size_t len) {
+        return (float)getBinaryNumber(len)/10.0f;
+    }
+
+    int getBinaryNumber(size_t len, bool bigEndian = true) {
         std::string s = get(len);
         if (!bigEndian) {
             std::string rs(s.rbegin(), s.rend());
             s = rs;
         }
-        long res = 0;
+        int res = 0;
         for (unsigned char c : s) {
             res <<= 8;
             res += c;
         }
         return res;
-    }
-
-    unsigned char getUnsignedChar(bool bigEndian = true) {
-        return (unsigned char)getBinaryNumber(1,bigEndian);
     }
 };
 
