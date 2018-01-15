@@ -38,17 +38,11 @@ public:
     ~World();
 
     void loadMap(std::vector<WorldCell>& map,sf::Vector2<int> mapSize,std::vector<sf::Vector2<int>> playerSpawnPoints);
-    //load map from space(newline) seperated file
-    //first two number mapWidth, mapHeight (Space seperated)
-    //newline
-    //8 space seperated numbers indicating 4 player spawning points
-    //newline
-    //space seperated list of numbers
-    void loadMapFromFile(std::string filename);
     int getWidth() { return mapSize.x; }
     int getHeight() { return mapSize.y; }
     WorldCell getCell(sf::Vector2<int> pos) { return mapSize[pos.x + pos.y * mapSize.y]; }
     void cleanup();
+    void changeCell(sf::Vector2<int> pos, WorldCell value);
 #ifdef CLIENT
     void draw(sf::RenderWindow& window);
 #else

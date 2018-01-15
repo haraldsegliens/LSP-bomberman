@@ -6,6 +6,10 @@ CGamerules::CGamerules(std::string addr, int port) : mainLoop(&CGamerules::handl
     state = GameState::NOT_CONNECTED;
     connection = newClientConnection(addr.c_str(),port);
     sendJoinRequest();
+
+    if(!dynamiteTexture.loadFromFile("materials/dynamite.png")) {
+        std::cout << "Error loading player texture: " << "materials/dynamite.png" << std::endl;
+    }
 }
 
 CGamerules::~CGamerules() {

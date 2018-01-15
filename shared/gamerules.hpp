@@ -126,6 +126,7 @@ class Gamerules {
     void parseObjects(StringReader& reader);
     void parseGameOver(StringReader& reader);
 
+    sf::Texture dynamiteTexture;
 #else
     Listener* listener;
     sf::Time initStart;
