@@ -12,6 +12,7 @@
 #define World CWorld
 #else
 #include <Time.hpp>
+#include "gamerules.hpp"
 
 struct WorldChange {
     sf::Vector2<int> position;
@@ -34,22 +35,27 @@ class World {
     std::vector<sf::Vector2<int>> playerSpawnPoints;
 #endif
 public:
+#ifdef CLIENT
+    World(std::vector<WorldCell>& _map,sf::Vector2<int> _mapSize);
+#else
     World();
+#endif
     ~World();
 
-    void loadMap(std::vector<WorldCell>& map,sf::Vector2<int> mapSize,std::vector<sf::Vector2<int>> playerSpawnPoints);
     int getWidth() { return mapSize.x; }
     int getHeight() { return mapSize.y; }
-    WorldCell getCell(sf::Vector2<int> pos) { return mapSize[pos.x + pos.y * mapSize.y]; }
+    WorldCell getCell(sf::Vector2<int> pos) { return mapSize[pos.x + pos.y * mapSize.x]; }
     void cleanup();
-    void changeCell(sf::Vector2<int> pos, WorldCell value);
 #ifdef CLIENT
     void draw(sf::RenderWindow& window);
+    void loadMap(std::vector<WorldCell>& _map,sf::Vector2<int> _mapSize);
+    void changeCell(sf::Vector2<int> pos, WorldCell value);
 #else
-    void updateKeepAlive();
     void update(Gamerules* gamerules);
+    void loadMap(std::vector<WorldCell>& _map,sf::Vector2<int> _mapSize,std::vector<sf::Vector2<int>> _playerSpawnPoints);
     void startClosing() { closing = true; }
     bool isClosing() { return closing; }
+    void changeCell(sf::Vector2<int> pos, WorldCell value, Gamerules* gamerules);
 #endif
 };
 

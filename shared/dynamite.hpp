@@ -1,13 +1,13 @@
 #ifndef DYNAMITE_H
 #define DYNAMITE_H
 
-#include <Vector2.hpp>
+#include <SFML/Vector2.hpp>
 #include "shared_enums.hpp"
 #include "gamerules.hpp"
 
 #ifdef CLIENT
 #define Dynamite CDynamite
-#include <RenderWindow.hpp>
+#include <SFML/RenderWindow.hpp>
 #endif
 
 class Dynamite {

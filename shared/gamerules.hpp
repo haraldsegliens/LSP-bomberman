@@ -1,7 +1,7 @@
 #ifndef GAMERULES_H
 #define GAMERULES_H
 
-#include <Clock.hpp>
+#include <SFML/Clock.hpp>
 #include <vector>
 #include <thread>
 #include <mutex>
@@ -17,7 +17,7 @@ extern "C" {
 }
 
 #ifdef CLIENT
-#include <Time.hpp>
+#include <SFML/Time.hpp>
 #include <memory>
 
 #include "../client/c_screen.hpp"
@@ -31,8 +31,7 @@ struct LobbyClient {
     bool status;
 };
 #else
-#include <Clock.hpp>
-#include <Rect.hpp>
+#include <SFML/Rect.hpp>
 #include <list>
 #include <map>
 
@@ -127,6 +126,8 @@ class Gamerules {
     void parseGameOver(StringReader& reader);
 
     sf::Texture dynamiteTexture;
+
+    void draw(sf::RenderWindow& window);
 #else
     Listener* listener;
     sf::Time initStart;

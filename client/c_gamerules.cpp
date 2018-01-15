@@ -91,3 +91,14 @@ void CGamerules::toConnectionErrorState() {
     connection = nullptr;
     cleanup();
 }
+
+void CGamerules::draw(sf::RenderWindow& window) {
+    world.draw(window);
+    volatileEntityManager.draw(window);
+    for(auto& it : players) {
+        *it.draw(window);
+    }
+    for(auto& it : dynamites) {
+        *it.draw(window);
+    }
+}
