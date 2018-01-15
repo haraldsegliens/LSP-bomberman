@@ -35,11 +35,8 @@ class World {
     std::vector<sf::Vector2<int>> playerSpawnPoints;
 #endif
 public:
-#ifdef CLIENT
-    World(std::vector<WorldCell>& _map,sf::Vector2<int> _mapSize);
-#else
+
     World();
-#endif
     ~World();
 
     int getWidth() { return mapSize.x; }

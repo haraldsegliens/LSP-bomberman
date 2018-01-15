@@ -2,9 +2,11 @@
 #include <iostream>
 #include <RectangleShape.hpp>
 
-CPlayer::CPlayer(int _id,std::string _name,sf::Vector2<float> _position, int order) : id(_id), name(_name),
+CPlayer::CPlayer(int _id,std::string _name,
+                 sf::Vector2<float> _position, 
+                 sf::Vector2<int> _direction, int order) : id(_id), name(_name),
                                                position(_position),
-                                               direction(sf::Vector2<int>(1,0)),
+                                               direction(_direction),
                                                powerup(Powerup::NONE),
                                                power(1), speed(1),
                                                maxDynamiteCount(1) {

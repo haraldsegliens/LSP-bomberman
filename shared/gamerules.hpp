@@ -71,8 +71,6 @@ class Gamerules {
     GameState state;
     sf::Time endTime;
 
-    int dynamiteTime;
-    float dynamiteSlideSpeed;
     //entities
     World world;
     VolatileEntityManager volatileEntityManager;
@@ -96,9 +94,19 @@ class Gamerules {
     sf::Time lastLoopStart;
     sf::Time deltaTime;
 
+    Player* getPlayer(int id) {
+        for(auto& it : players) {
+            if(*it.getId() == id) {
+                return &*it;
+            }
+        }
+        return nullptr;
+    }
+
 #ifdef CLIENT
     Connection* connection;
     int myClientId;
+    std::string playerName;
     std::vector<LobbyClient> lobbyClients;
     sf::Time lastReceivedMessage;
     std::vector<int> gameOverWinners;
@@ -111,6 +119,17 @@ class Gamerules {
 
     std::vector<std::string>> getMessages();
     void sendMessage(std::string message);
+    sf::Vector2<int> getDirectionFromNumber(int i) {
+        if(i == 0) {
+            return sf::Vector2<int>(0,-1);
+        } else if(i == 0) {
+            return sf::Vector2<int>(1,0);
+        } else if(i == 0) {
+            return sf::Vector2<int>(0,1);
+        } else {
+            return sf::Vector2<int>(-1,0);
+        }
+    }
 
     void sendJoinRequest();
     void sendKeepAlive();
@@ -160,7 +179,7 @@ class Gamerules {
 public:
 
 #ifdef CLIENT
-    Gamerules(std::string addr, int port);
+    Gamerules(std::string addr, int port, std::string _playerName);
 #else
     Gamerules(int port);
 #endif

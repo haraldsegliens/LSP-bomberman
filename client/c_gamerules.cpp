@@ -1,7 +1,7 @@
 #include "../shared/gamerules.h"
 
-CGamerules::CGamerules(std::string addr, int port) : mainLoop(&CGamerules::handleMainLoop, this), 
-                                                     parseMessages(&CGamerules::handleParseMessages, this) {
+CGamerules::CGamerules(std::string addr, int port,std::string _playerName) : mainLoop(&CGamerules::handleMainLoop, this), 
+                                                     parseMessages(&CGamerules::handleParseMessages, this), playerName(_playerName) {
     cleanup();
     state = GameState::NOT_CONNECTED;
     connection = newClientConnection(addr.c_str(),port);

@@ -1,7 +1,6 @@
 #include "../shared/c_volatile_entities_manager.hpp"
 
-CVolatileEntitiesManager::CVolatileEntitiesManager(Gamerules* _gamerules) : gamerules(_gamerules) {
-    cleanup();
+CVolatileEntitiesManager::CVolatileEntitiesManager(Gamerules* _gamerules) {
     //SPRITE_CELL_SIZE*SPRITE_CELL_SIZE * 6 sprite
     //uguns un 5 powerupi 1 rindā
     if(!tileMap.loadFromFile("materials/tile.png")) {
@@ -12,6 +11,20 @@ CVolatileEntitiesManager::CVolatileEntitiesManager(Gamerules* _gamerules) : game
 CVolatileEntitiesManager::~CVolatileEntitiesManager() {}
 
 void CVolatileEntitiesManager::cleanup() {
+    volatileEntitiesMap.clear();
+}
+
+void CVolatileEntitiesManager::clear() {
+    int i_max = gamerules->getWorld()->getWidth()*gamerules->getWorld()->getHeight();
+    for(int i = 0; i < i_max;i++) {
+        volatileEntitiesMap[i].type = VolatileEntityType::EMPTY;
+        volatileEntitiesMap[i].powerupType = Powerup::NONE;
+    }
+}
+
+void CVolatileEntitiesManager::load(Gamerules* _gamerules) {
+    cleanup();
+    gamerules = _gamerules;
     volatileEntitiesMap.clear();
     int i_max = gamerules->getWorld()->getWidth()*gamerules->getWorld()->getHeight();
     for(int i = 0; i < i_max;i++) {

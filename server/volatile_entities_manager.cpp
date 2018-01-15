@@ -1,12 +1,14 @@
 #include "../shared/volatile_entities_manager.hpp"
 
-VolatileEntitiesManager::VolatileEntitiesManager(Gamerules* _gamerules) : gamerules(_gamerules) {
+VolatileEntitiesManager::VolatileEntitiesManager() {
     cleanup();
 }
 
 VolatileEntitiesManager::~VolatileEntitiesManager() {}
 
-void VolatileEntitiesManager::cleanup() {
+void VolatileEntitiesManager::load(Gamerules* _gamerules) {
+    cleanup();
+    gamerules = _gamerules;
     volatileEntitiesMap.clear();
     int i_max = gamerules->getWorld()->getWidth()*gamerules->getWorld()->getHeight();
     for(int i = 0; i < i_max;i++) {
@@ -17,7 +19,12 @@ void VolatileEntitiesManager::cleanup() {
     }
 }
 
-void VolatileEntitiesManager::update(Gamerules* gamerules) {
+void VolatileEntitiesManager::cleanup() {
+    volatileEntitiesMap.clear();
+    events.clear();
+}
+
+void VolatileEntitiesManager::update(Gamerules* _gamerules) {
     auto it = events.begin();
     while(it != events.end() && *it.time <= gamerules->getCurrentTime()) {
         entity->type = VolatileEntityType::EMPTY;

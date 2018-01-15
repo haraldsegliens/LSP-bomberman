@@ -43,9 +43,9 @@ class VolatileEntitiesManager {
     std::list<VolatileEntityEvent> events;
 #endif
 public:
-    VolatileEntitiesManager(Gamerules* _gamerules);
+    VolatileEntitiesManager();
     ~VolatileEntitiesManager();
-
+    void load(Gamerules* _gamerules);
     VolatileEntity* get(sf::Vector2<int> pos) {
         return &volatileEntitiesMap[pos.y * gamerules->getWorld()->getWidth() + pos.x];
     }
@@ -53,8 +53,9 @@ public:
 
 #ifdef CLIENT
     void draw(sf::RenderWindow& window);
+    void clear();
 #else
-    void update(Gamerules* gamerules);
+    void update(Gamerules* _gamerules);
     void deleteEntity(VolatileEntity* entity);
     VolatileEntity* createFire(sf::Vector2<int> pos);
     VolatileEntity* createPowerup(sf::Vector2<int> pos, Powerup powerupType);

@@ -27,6 +27,7 @@ class Player {
     int power;
     int speed;
     int maxDynamiteCount;
+    bool dead;
 
 #ifdef CLIENT
     sf::Texture playerTexture;
@@ -40,7 +41,6 @@ class Player {
     Connection* playerConnection;
     sf::Time lastKeepAlive;
     bool ready;
-    bool dead;
     bool destroy;
     std::list<Dynamite*> currentDynamites;
     sf::Time endTemporaryPowerup;
@@ -71,14 +71,47 @@ public:
 #ifdef SERVER
     Player(int _id,std::string _name,sf::Vector2<float> _position,Connection* _con);
 #else
-    Player(int _id,std::string _name,sf::Vector2<float> _position);
+    Player(int _id,std::string _name,sf::Vector2<float> _position,sf::Vector2<int> _direction, int order);
 #endif
     ~Player();
 
     bool isReady() { return ready; }
     void setReady(bool ready) { this->ready = ready; }
 
-    Vector2f getPosition() {return position;}
+    int getId() { return id; } 
+
+    sf::Vector2f getPosition() {return position;}
+    void setPosition(sf::Vector2f a) {
+        position = a;
+    }
+
+    sf::Vector2i getDirection() {return direction;}
+    void setDirection(sf::Vector2i a) {
+        direction = a;
+    }
+
+    Powerup getPowerup() {return powerup;}
+    void setPowerup(Powerup a) {
+        powerup = a;
+    }
+
+    int getPower() {return power;}
+    void setPower(int a) {
+        power = a;
+    }
+
+    int getSpeed() {return speed;}
+    void setSpeed(int a) {
+        speed = a;
+    }
+
+    int getMaxDynamiteCount() {return maxDynamiteCount;}
+    void setMaxDynamiteCount(int a) {
+        maxDynamiteCount = a;
+    }
+
+    bool isDead() { return dead; }
+    bool setDead(bool a) { dead = a; }
 
 #ifdef CLIENT
     void draw(sf::RenderWindow& window);
@@ -87,7 +120,6 @@ public:
     void update(Gamerules* gamerules);
 
     bool mustDestroy() { return destroy; }
-    bool isDead() { return dead; }
     Connection* getConnection() { return playerConnection; }
     bool isTemporaryPowerup() { return powerup == Powerup::REMOTE_DETONATOR || powerup == Powerup::DYNAMITE_KICK; }
 

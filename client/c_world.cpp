@@ -1,11 +1,10 @@
 #include "../shared/world.hpp"
 
-CWorld::CWorld(std::vector<WorldCell>& _map,sf::Vector2<int> _mapSize) {
+CWorld::CWorld() {
     //spritesheet: ar SPRITE_CELL_SIZE*SPRITE_CELL_SIZE * 3 bildēm: zeme, kaste, siena
     if(!tileset.loadFromFile("materials/world.png")) {
         std::cout << "Error loading world texture: " << "materials/world.png" << std::endl;
     }
-    loadMap(_map,_mapSize);
 }
 
 ~CWorld::CWorld() {}

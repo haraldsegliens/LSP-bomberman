@@ -1,6 +1,9 @@
 #include "c_screen.hpp"
+#include <iostream>
 
-CScreen::CScreen() : window(sf::VideoMode(800, 600), "Bomberman") {}
+CScreen::CScreen() : window(sf::VideoMode(800, 600), "Bomberman") {
+    std::cout << "Creating CScreen" << std::endl;
+}
 
 CScreen::~CScreen() {
 
