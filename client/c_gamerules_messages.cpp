@@ -1,12 +1,12 @@
 #include "../shared/gamerules.hpp"
 #include <iostream>
 
-void CGamerules::handleParseMessages() {
+void CGamerules::parseMessages() {
     while(true) {
         auto messages = getMessages();
         for(auto msg : messages) {
             StringReader reader(msg);
-            PacketType packetId = (PacketType)reader.getUnsignedChar();
+            PacketType packetId = (PacketType)reader.getBinaryNumber(1);
             switch(packetId) {
                 case PacketType::JOIN_RESPONSE:
                     parseJoinResponse(reader,pair.first);

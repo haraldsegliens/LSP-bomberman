@@ -4,7 +4,6 @@
 #include <SFML/Clock.hpp>
 #include <vector>
 #include <thread>
-#include <mutex>
 #include <algorithm>
 
 #include "shared_enums.hpp"
@@ -82,10 +81,8 @@ class Gamerules {
     std::list<Dynamite> dynamites;
 #endif
 
-    //threads and mutex
-    std::mutex mutex;
+    //threads
     std::thread mainLoop;
-    std::thread parseMessages;
 
     void handleLobbyState();
     void handleInitState();
@@ -233,10 +230,6 @@ public:
 #endif
     ~Gamerules();
 
-    void handleMainLoop();
-    void handleParseMessages();
-    void cleanup();
-
     World* getWorld() {
         return &world;
     }
@@ -261,6 +254,28 @@ public:
         }
         return nullptr;
     }
+
+    void handleMainLoop() {
+        while(true) {
+            deltaTime = getCurrentTime() - lastLoopStart;
+            lastLoopStart += deltaTime;
+
+            switch(state) {
+                case GameState::LOBBY:
+                    handleLobbyState();
+                    break;
+                case GameState::INIT:
+                    handleInitState();
+                    break;
+                case GameState::GAME:
+                    handleGameState();
+                    break;
+            }
+            parseMessages();
+        }
+    }
+    void parseMessages();
+    void cleanup();
 
 #ifdef CLIENT
     void ready();
