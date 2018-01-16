@@ -10,7 +10,7 @@ World::~World() {}
 
 
 void World::cleanup() {
-    std::vector<int> _mapSize = {13,13};
+    sf::Vector2i _mapSize(13,13);
     std::vector<int> _map = {
         2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
         2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2,
@@ -27,9 +27,14 @@ void World::cleanup() {
         2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2
     };
     std::vector<sf::Vector2<int>> _playerSpawnPoints = {
-        sf::Vector2<int>(),sf::Vector2<int>()
+        sf::Vector2<int>(1,1),sf::Vector2<int>(11,1),sf::Vector2<int>(1,11),sf::Vector2<int>(11,11)
     };
-    loadMap(_map,_mapSize,_playerSpawnPoints);
+
+    std::vector<WorldCell> castedMap;
+    for(int a : _map) {
+        castedMap.push_back((WorldCell)a);
+    }
+    loadMap(castedMap,_mapSize,_playerSpawnPoints);
 }
 
 void World::update(Gamerules* gamerules) {}
@@ -46,7 +51,7 @@ void World::changeCell(sf::Vector2<int> pos, WorldCell value, Gamerules* gamerul
     if(getCell(pos) == WorldCell::BOX && value == WorldCell::GROUND && (rand()%3) == 0) {
         gamerules->getVolatileEntitiesManager()->createPowerup(pos,(Powerup)(rand() % 5));
     }
-    mapSize[pos.x + pos.y * mapSize.x] = value;
+    map[pos.x + pos.y * mapSize.x] = value;
     WorldChange change;
     change.position = pos;
     change.value = value;

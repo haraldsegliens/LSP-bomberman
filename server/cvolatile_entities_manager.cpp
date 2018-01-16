@@ -26,9 +26,9 @@ void VolatileEntitiesManager::cleanup() {
 
 void VolatileEntitiesManager::update(Gamerules* _gamerules) {
     auto it = events.begin();
-    while(it != events.end() && *it.time <= gamerules->getCurrentTime()) {
-        entity->type = VolatileEntityType::EMPTY;
-        entity->powerupType = Powerup::NONE;
+    while(it != events.end() && it->time <= gamerules->getCurrentTime()) {
+        it->entity->type = VolatileEntityType::EMPTY;
+        it->entity->powerupType = Powerup::NONE;
         it = events.erase(it);
     }
 }
@@ -36,7 +36,7 @@ void VolatileEntitiesManager::update(Gamerules* _gamerules) {
 void VolatileEntitiesManager::deleteEntity(VolatileEntity* entity) {
     entity->type = VolatileEntityType::EMPTY;
     entity->powerupType = Powerup::NONE;
-    events.erase(event);
+    events.erase(entity->event);
 }
 
 VolatileEntity* VolatileEntitiesManager::createFire(sf::Vector2<int> pos) {
@@ -54,11 +54,11 @@ VolatileEntity* VolatileEntitiesManager::createPowerup(sf::Vector2<int> pos, Pow
     return entity;
 }
 
-std::list<VolatileEntityEvent>::iterator addEvent(VolatileEntity* entity, sf::Time time) {
+std::list<VolatileEntityEvent>::iterator VolatileEntitiesManager::addEvent(VolatileEntity* entity, sf::Time time) {
     VolatileEntityEvent event;
     event.time = time;
     event.entity = entity;
     auto it = events.begin();
-    while(it != events.end() && *it->time <= time) { ++it; }
+    while(it != events.end() && it->time <= time) { ++it; }
     return events.insert(it,event);
 }

@@ -1,29 +1,32 @@
 #ifndef VOLATILE_ENTITIES_MANAGER_H
 #define VOLATILE_ENTITIES_MANAGER_H
 
-#include "shared_enums.hpp"
 #include <vector>
 #include <list>
-#include <Vector2.hpp>
-#include <Time.hpp>
+#include <SFML/Graphics.hpp>
+#include "shared_enums.hpp"
 
 #ifdef CLIENT
-#include <RenderWindow.hpp>
-#include <Texture.hpp>
 #define VolatileEntitiesManager CVolatileEntitiesManager
-#else
-struct VolatileEntity;
-struct VolatileEntityEvent {
-    sf:Time time;
-    VolatileEntity* entity;
-};
 #endif
+
+class VolatileEntitiesManager;
 
 typedef enum { 
     EMPTY = 0,
     FIRE = 1,
     POWERUP = 2
 } VolatileEntityType;
+
+#ifdef SERVER
+struct VolatileEntity;
+struct VolatileEntityEvent {
+    sf::Time time;
+    VolatileEntity* entity;
+};
+#endif
+
+#include "gamerules.hpp"
 
 struct VolatileEntity {
     VolatileEntityType type;
@@ -46,24 +49,9 @@ public:
     VolatileEntitiesManager();
     ~VolatileEntitiesManager();
     void load(Gamerules* _gamerules);
-    VolatileEntity* get(sf::Vector2<int> pos) {
-        return &volatileEntitiesMap[pos.y * gamerules->getWorld()->getWidth() + pos.x];
-    }
+    VolatileEntity* get(sf::Vector2<int> pos);
     void cleanup();
-
-    std::vector<sf::Vector2i> getAllPositionsWithType(VolatileEntityType type) {
-        std::vector<sf::Vector2i> result;
-        for(int y = 0; y < gamerules->getWorld()->getHeight(); y++) {
-            for(int x = 0; x < gamerules->getWorld()->getWidth(); x++) {
-                sf::Vector2<int> pos(x,y);
-                VolatileEntity* entity = get(pos);
-                if(entity->type == type) {
-                    result.push_back(pos);
-                }
-            }
-        }
-        return result;
-    }
+    std::vector<sf::Vector2i> getAllPositionsWithType(VolatileEntityType type);
 
 #ifdef CLIENT
     void draw(sf::RenderWindow& window);

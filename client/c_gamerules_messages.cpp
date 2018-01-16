@@ -9,7 +9,7 @@ void CGamerules::parseMessages() {
             PacketType packetId = (PacketType)reader.getBinaryNumber(1);
             switch(packetId) {
                 case PacketType::JOIN_RESPONSE:
-                    parseJoinResponse(reader,pair.first);
+                    parseJoinResponse(reader);
                     break;
                 case PacketType::LOBBY_STATUS:
                     parseLobbyStatus(reader);
@@ -26,6 +26,8 @@ void CGamerules::parseMessages() {
                 case PacketType::GAME_OVER:
                     parseGameOver(reader);
                     break;
+                default:
+                    break;
             }
         }
     }
@@ -37,37 +39,37 @@ void CGamerules::sendJoinRequest() {
     }
 
     std::string message;
-    message += (char)PacketType.JOIN_REQUEST;
+    message += (char)PacketType::JOIN_REQUEST;
     message += playerName.substr(0,23);
     sendMessage(message);
 }
 
 void CGamerules::sendKeepAlive() {
     std::string message;
-    message += (char)PacketType.KEEP_ALIVE;
+    message += (char)PacketType::KEEP_ALIVE;
     message += (char)myClientId;
     sendMessage(message);
 }
 
 void CGamerules::sendReady() {
     std::string message;
-    message += (char)PacketType.READY;
+    message += (char)PacketType::READY;
     message += (char)myClientId;
     sendMessage(message);
 }
 
 void CGamerules::sendDisconnect() {
     std::string message;
-    message += (char)PacketType.DISCONNECT;
+    message += (char)PacketType::DISCONNECT;
     message += (char)myClientId;
     sendMessage(message);
 }
 
 void CGamerules::sendPlayerInput(short inputState) {
     std::string message;
-    message += (char)PacketType.PLAYER_INPUT;
+    message += (char)PacketType::PLAYER_INPUT;
     message += (char)myClientId;
-    message += from2ByteIntegerToString((int)inputState)
+    message += from2ByteIntegerToString((int)inputState);
     sendMessage(message);
 }
 
@@ -138,9 +140,9 @@ void CGamerules::parseGameStart(StringReader& reader) {
             WorldCell cell = (WorldCell)reader.getBinaryNumber(1);
             map.push_back(cell);
         }
-        world.loadMap(map,sf::Vector2<int>(width,height));
-        volatileEntityManager.load(this);
-        screen == std::make_unique(CScreen());
+        world->loadMap(map,sf::Vector2<int>(width,height));
+        volatileEntitiesManager->load(this);
+        screen = std::unique_ptr<CScreen>(new CScreen());
 
         sendReady();
         lastReceivedMessage = getCurrentTime();
@@ -159,7 +161,7 @@ void CGamerules::parseMapUpdate(StringReader& reader) {
             int _y = reader.getBinaryNumber(1);
             int _value = reader.getBinaryNumber(1);
             std::cout << "change_" << i << ": (" << _x << "," << _y << ") -> " << _value << std::endl;
-            world.changeCell(sf::Vector2<int>(_x,_y),_value);
+            world->changeCell(sf::Vector2<int>(_x,_y),(WorldCell)_value);
         }
         lastReceivedMessage = getCurrentTime();
     }
@@ -172,7 +174,7 @@ void CGamerules::parseObjects(StringReader& reader) {
     if(state == GameState::GAME) {
         dynamites.clear();
 
-        int timer = reader.getBinaryNumber(2);
+        //int timer = reader.getBinaryNumber(2);
         endTime = getCurrentTime() + sf::seconds(reader.getBinaryNumber(2));
 
         int dynamiteCount = reader.getBinaryNumber(1);
@@ -182,32 +184,32 @@ void CGamerules::parseObjects(StringReader& reader) {
             CDynamite dynamite(sf::Vector2<float>(_x,_y), &dynamiteTexture);
             dynamites.push_back(dynamite);
         }
-        volatileEntityManager.clear();
+        volatileEntitiesManager->clear();
         int fireCount = reader.getBinaryNumber(1);
         for(int i = 0; i < fireCount; i++) {
             int _x = reader.getBinaryNumber(1);
             int _y = reader.getBinaryNumber(1);
-            volatileEntityManager.get(sf::Vector2<int>(_x,_y))->type = VolatileEntityType::FIRE;
+            volatileEntitiesManager->get(sf::Vector2<int>(_x,_y))->type = VolatileEntityType::FIRE;
         }
         int powerupCount = reader.getBinaryNumber(1);
         for(int i = 0; i < powerupCount; i++) {
             int _x = reader.getBinaryNumber(1);
             int _y = reader.getBinaryNumber(1);
             Powerup _powerup = (Powerup)reader.getBinaryNumber(1);
-            VolatileEntity* entity = volatileEntityManager.get(sf::Vector2<int>(_x,_y));
+            VolatileEntity* entity = volatileEntitiesManager->get(sf::Vector2<int>(_x,_y));
             entity->type = VolatileEntityType::FIRE;
             entity->powerupType = _powerup;
         }
 
         int playerCount = reader.getBinaryNumber(1);
         std::vector<int> playerIds;
-        for(int i = 0; i < powerupCount; i++) {
+        for(int i = 0; i < playerCount; i++) {
             int _id = reader.getBinaryNumber(1);
-            playerIds.push_back(playerIds);
+            playerIds.push_back(_id);
             Player* player = getPlayer(_id);
 
             bool _dead = reader.getBinaryNumber(1) == 1;
-            player.setDead(true);
+            player->setDead(true);
 
             if(!_dead) {
                 float _x = reader.getDFloat(2);
@@ -215,7 +217,7 @@ void CGamerules::parseObjects(StringReader& reader) {
                 player->setPosition(sf::Vector2f(_x,_y));
 
                 int _dir = reader.getBinaryNumber(1);
-                player->setDirection(getDirectionFromNumber(_direction));
+                player->setDirection(getDirectionFromNumber(_dir));
                 player->setPowerup((Powerup)reader.getBinaryNumber(1));
                 player->setPower(reader.getBinaryNumber(1));
                 player->setSpeed(reader.getBinaryNumber(1));
@@ -226,8 +228,8 @@ void CGamerules::parseObjects(StringReader& reader) {
         //setting dead those players that werent found in this packet
         auto it = players.begin();
         while(it != players.end()) {
-            if(std::find(playerIds.begin(),playerIds.end(),*it.getId()) == playerIds.end()) {
-                *it->setDead(true);
+            if(std::find(playerIds.begin(),playerIds.end(),it->getId()) == playerIds.end()) {
+                it->setDead(true);
             }
         }
 
@@ -246,15 +248,17 @@ std::vector<std::string> Gamerules::getMessages() {
     MsgQueue* messages = getReceivedMessages(connection);
     auto j_node = messages->front;
     while(j_node != nullptr) {
-        connection_messages.push_back(std::string(j_node->buffer,j_node->buffer_length));
-        j_node = jnode->next;
+        connection_messages.push_back(std::string(j_node->message.buffer,j_node->message.buffer_length));
+        j_node = j_node->next;
     }
     return connection_messages;
 }
 
 void Gamerules::sendMessage(std::string message) {
     Msg msg;
-    msg.buffer = message.c_str();
+    msg.buffer = new char[message.size() + 1];
+    strcpy(msg.buffer, message.c_str());
     msg.buffer_length = message.size();
     sendConnection(connection,msg);
+    delete [] msg.buffer;
 }

@@ -1,6 +1,5 @@
 #include "../shared/player.hpp"
 #include <iostream>
-#include <RectangleShape.hpp>
 
 CPlayer::CPlayer(int _id,std::string _name,
                  sf::Vector2<float> _position, 

@@ -1,28 +1,32 @@
-#ifndef GAMERULES_H
-#define GAMERULES_H
+#pragma once
 
-#include <SFML/Clock.hpp>
+#include <SFML/Graphics.hpp>
 #include <vector>
 #include <thread>
 #include <algorithm>
+
+#ifdef CLIENT
+#define Gamerules CGamerules
+#endif
+
+class Gamerules;
+struct SurroundingInfo;
+
+extern "C" {
+    #include "../comms/comms.h"
+}
 
 #include "shared_enums.hpp"
 #include "world.hpp"
 #include "player.hpp"
 #include "volatile_entities_manager.hpp"
 #include "dynamite.hpp"
-
-extern "C" {
-    #include "comms/comms.h"
-}
+#include "string_reader.hpp"
 
 #ifdef CLIENT
-#include <SFML/Time.hpp>
 #include <memory>
 
 #include "../client/c_screen.hpp"
-
-#define Gamerules CGamerules
 #define KEEP_ALIVE_PERIOD 1.0f
 
 struct LobbyClient {
@@ -31,7 +35,6 @@ struct LobbyClient {
     bool status;
 };
 #else
-#include <SFML/Rect.hpp>
 #include <list>
 #include <map>
 
@@ -39,31 +42,19 @@ struct LobbyClient {
 #define ROUND_TIME 90
 
 struct SurroundingInfo {
+    struct vectorComp {
+        bool operator() (const sf::Vector2<int>& lhs, const sf::Vector2<int>& rhs) const {
+            return true;
+        }
+    };
     sf::Vector2<float> position;
-    std::map<sf::Vector2<int>,WorldCell> worldCells;
+    std::map<sf::Vector2<int>,WorldCell,vectorComp> worldCells;
     std::vector<VolatileEntity*> entities;
     std::vector<Dynamite*> dynamites;
     std::vector<Player*> players;
-
-    sf::Vector2<int> findWorldCell(WorldCell cell) {
-        for(auto& it : worldCells) {
-            if(it.second == cell)
-                return it.first;
-        }
-        return sf::Vector2<int>(-1,-1);
-    }
-
-    bool containsWorldCell(WorldCell cell) {
-        return findWorldCell(cell) != sf::Vector2<int>(-1,-1);
-    }
-
-    VolatileEntity* findVolatileEntity(VolatileEntityType type) {
-        for(auto& it : entities) {
-            if(*it.type == type)
-                return &*it;
-        }
-        return nullptr;
-    }
+    sf::Vector2<int> findWorldCell(WorldCell cell);
+    bool containsWorldCell(WorldCell cell);
+    VolatileEntity* findVolatileEntity(VolatileEntityType type);
 };
 #endif
 
@@ -72,17 +63,15 @@ class Gamerules {
     sf::Time endTime;
 
     //entities
-    World world;
-    VolatileEntityManager volatileEntityManager;
+    std::thread mainLoop;
+    std::unique_ptr<World> world;
+    std::unique_ptr<VolatileEntitiesManager> volatileEntitiesManager;
     std::vector<Player> players;
 #ifdef CLIENT
     std::vector<Dynamite> dynamites;
 #else
     std::list<Dynamite> dynamites;
 #endif
-
-    //threads
-    std::thread mainLoop;
 
     void handleLobbyState();
     void handleInitState();
@@ -92,53 +81,12 @@ class Gamerules {
     sf::Time lastLoopStart;
     sf::Time deltaTime;
 
-    Player* getPlayer(int id) {
-        for(auto& it : players) {
-            if(*it.getId() == id) {
-                return &*it;
-            }
-        }
-        return nullptr;
-    }
+    Player* getPlayer(int id);
+    int fromFloatToDFloat(float a);
+    sf::Vector2<int> getDirectionFromNumber(int i);
+    int getNumberFromDirection(sf::Vector2<int> dir);
 
-    int fromFloatToDFloat(float a) {
-        return static_cast<int>(a * 10.0f);
-    }
-
-    sf::Vector2<int> getDirectionFromNumber(int i) {
-        if(i == 0) {
-            return sf::Vector2<int>(0,-1);
-        } else if(i == 1) {
-            return sf::Vector2<int>(1,0);
-        } else if(i == 2) {
-            return sf::Vector2<int>(0,1);
-        } else {
-            return sf::Vector2<int>(-1,0);
-        }
-    }
-
-    int getNumberFromDirection(sf::Vector2<int> dir) {
-        if(dir.x == 0) {
-            if(dir.y == 1) {
-                return 2;
-            } else {
-                return 0;
-            }
-        } else {
-            if(dir.x == 1) {
-                return 1;
-            } else {
-                return 3;
-            }
-        }
-    }
-
-    std::string from2ByteIntegerToString(int i) {
-        std::string a;
-        a += (char)(_x & 0xff);
-        a += (char)((_x >> 8) & 0xff);
-        return a;
-    }
+    std::string from2ByteIntegerToString(int i);
 
 #ifdef CLIENT
     Connection* connection;
@@ -149,12 +97,14 @@ class Gamerules {
     std::vector<int> gameOverWinners;
     std::unique_ptr<CScreen> screen;
 
+    char* m_addr;
+
     sf::Time lastKeepAlive;
     short lastInputState;
 
     void toConnectionErrorState();
 
-    std::vector<std::string>> getMessages();
+    std::vector<std::string> getMessages();
     void sendMessage(std::string message);
 
     void sendJoinRequest();
@@ -171,8 +121,6 @@ class Gamerules {
     void parseGameOver(StringReader& reader);
 
     sf::Texture dynamiteTexture;
-
-    void draw(sf::RenderWindow& window);
 #else
     Listener* listener;
     sf::Time initStart;
@@ -196,29 +144,16 @@ class Gamerules {
     void parseDisconnect(StringReader& reader);
 
     void cleanupPlayers();
-    int countReady();
+    unsigned int countReady();
+    unsigned int countAlive();
 
-    Rect<float> getSurroundingBox(Vector2<float> _position) {
-        return Rect<float>(_position.x - 0.5f,_position.y - 0.5f,
+    sf::Rect<float> getSurroundingBox(sf::Vector2<float> _position) {
+        return sf::Rect<float>(_position.x - 0.5f,_position.y - 0.5f,
                            _position.x + 0.5f,_position.y + 0.5f);
     }
-    std::vector<sf::Vector2<int>> getSurroundingCoords(Rect<float> box);
-
-    int findFreePlayerId() {
-        for(int i = 0; i < 4; i++) {
-            bool found = false;
-            for(Player& player : players) {
-                if(player.getId() == i) {
-                    found = true;
-                    break;
-                }
-            }
-            if(!found) {
-                return i;
-            }
-        }
-        return 5;
-    }
+    std::vector<sf::Vector2<int>> getSurroundingCoords(sf::Rect<float> box);
+    void cleanupDynamites();
+    int findFreePlayerId();
 #endif
 
 public:
@@ -230,64 +165,26 @@ public:
 #endif
     ~Gamerules();
 
-    World* getWorld() {
-        return &world;
-    }
+    World* getWorld();
+    VolatileEntitiesManager* getVolatileEntitiesManager();
+    sf::Time getCurrentTime();
+    sf::Time getDeltaTime();
+    Dynamite* getDynamiteInPosition(sf::Vector2<int> position);
 
-    VolatileEntitiesManager* getVolatileEntitiesManager() {
-        return &volatileEntityManager;
-    }
-
-    sf::Time getCurrentTime() {
-        return clock.getElapsedTime();
-    }
-
-    sf::Time getDeltaTime() {
-        return deltaTime;
-    }
-
-    Dynamite* getDynamiteInPosition(sf::Vector2<int> position) {
-        for(auto& it : dynamites) {
-            if(sf::Vector2<int>(*it.getPosition()) == position) {
-                return *it;
-            }
-        }
-        return nullptr;
-    }
-
-    void handleMainLoop() {
-        while(true) {
-            deltaTime = getCurrentTime() - lastLoopStart;
-            lastLoopStart += deltaTime;
-
-            switch(state) {
-                case GameState::LOBBY:
-                    handleLobbyState();
-                    break;
-                case GameState::INIT:
-                    handleInitState();
-                    break;
-                case GameState::GAME:
-                    handleGameState();
-                    break;
-            }
-            parseMessages();
-        }
-    }
+    void handleMainLoop();
     void parseMessages();
     void cleanup();
+
+    GameState getState() {
+        return state;
+    }
 
 #ifdef CLIENT
     void ready();
     void disconnectClient();
+    void draw(sf::RenderWindow& window);
 #else
-    Dynamite* createDynamite(sf::Vector2<float> _position, Player* _owner) {
-        dynamites.push_back(Dynamite(_position,_owner));
-        return &dynamites.back();
-    }
-
-    SurroundingInfo scanSurrounding(Gamerules* gamerules, Vector2<float> _position);
+    Dynamite* createDynamite(sf::Vector2<float> _position, unsigned int _power, Player* _owner);
+    SurroundingInfo scanSurrounding(Gamerules* gamerules, sf::Vector2<float> _position);
 #endif
 };
-
-#endif

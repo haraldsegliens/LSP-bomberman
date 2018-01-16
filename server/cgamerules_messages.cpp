@@ -3,7 +3,7 @@
 void Gamerules::parseMessages() {
     std::map<Connection*,std::vector<std::string>> messages = getMessages();
     for(auto pair : messages) {
-        for(auto msg : messages.second) {
+        for(std::string msg : pair.second) {
             StringReader reader(msg);
             PacketType packetId = (PacketType)reader.getBinaryNumber(1);
             switch(packetId) {
@@ -22,6 +22,8 @@ void Gamerules::parseMessages() {
                 case PacketType::DISCONNECT:
                     parseDisconnect(reader);
                     break;
+                default:
+                    break;
             }
         }
     }
@@ -31,15 +33,15 @@ void Gamerules::sendLobbyStatus() {
     std::string message;
     message += (char)PacketType::LOBBY_STATUS;
     message += (char)players.size();
-    for(auto& it : players) {
-        auto name = *it.getName().substr(0,23);
+    for(Player& player : players) {
+        auto name = player.getName().substr(0,23);
         if(name.length() < 23) {
             name += '\0';
         }
 
-        message += (char)*it.getId();
+        message += (char)player.getId();
         message += name;
-        message += (char)(*it.isReady() ? 0 : 1);
+        message += (char)(player.isReady() ? 0 : 1);
     }
     sendMessageForAllPlayers(message);
 }
@@ -48,30 +50,30 @@ void Gamerules::sendGameStart() {
     std::string message;
     message += (char)PacketType::GAME_START;
     message += (char)players.size();
-    for(auto& it : players) {
-        auto name = *it.getName().substr(0,23);
+    for(Player& player : players) {
+        auto name = player.getName().substr(0,23);
         if(name.length() < 23) {
             name += '\0';
         }
-        message += (char)*it.getId();
+        message += (char)player.getId();
         message += name;
-        int _x = fromFloatToDFloat(*it.getPosition().x);
+        int _x = fromFloatToDFloat(player.getPosition().x);
         message += from2ByteIntegerToString(_x);
-        int _y = fromFloatToDFloat(*it.getPosition().y);
+        int _y = fromFloatToDFloat(player.getPosition().y);
         message += from2ByteIntegerToString(_y);
-        message += (char)getNumberFromDirection(*it->getDirection());
+        message += (char)getNumberFromDirection(player.getDirection());
     }
-    message += (char)world.getWidth();
-    message += (char)world.getHeight();
-    int i_max = world.getWidth() * world.getHeight();
+    message += (char)world->getWidth();
+    message += (char)world->getHeight();
+    int i_max = world->getWidth() * world->getHeight();
     for(int i = 0; i < i_max; i++) {
-        message += (char)world.getCell(i);
+        message += (char)world->getCell(i);
     }
     sendMessageForAllPlayers(message);
 }
 
 void Gamerules::sendMapUpdate() {
-    std::vector<WorldChange> changes = world.popChanges();
+    std::vector<WorldChange> changes = world->popChanges();
 
     std::string message;
     message += (char)PacketType::MAP_UPDATE;
@@ -107,20 +109,20 @@ void Gamerules::sendObjects() {
         message += from2ByteIntegerToString(_x);
         message += from2ByteIntegerToString(_y);
     }
-    std::vector<sf::Vector2i> fireEntityPositions = volatileEntityManager.getAllPositionsWithType(VolatileEntityType::FIRE);
+    std::vector<sf::Vector2i> fireEntityPositions = volatileEntitiesManager->getAllPositionsWithType(VolatileEntityType::FIRE);
     message += (char)fireEntityPositions.size();
     for(sf::Vector2i fireEntityPositions : fireEntityPositions) {
         message += (char)fireEntityPositions.x;
         message += (char)fireEntityPositions.y;
     }
 
-    std::vector<sf::Vector2i> powerupEntityPositions = volatileEntityManager.getAllPositionsWithType(VolatileEntityType::POWERUP);
+    std::vector<sf::Vector2i> powerupEntityPositions = volatileEntitiesManager->getAllPositionsWithType(VolatileEntityType::POWERUP);
     message += (char)powerupEntityPositions.size();
     for(sf::Vector2i powerupEntityPosition : powerupEntityPositions) {
-        VolatileEntity* entity = volatileEntityManager.get(powerupEntityPosition);
+        VolatileEntity* entity = volatileEntitiesManager->get(powerupEntityPosition);
         message += (char)powerupEntityPosition.x;
         message += (char)powerupEntityPosition.y;
-        message += (char)entity.powerupType;
+        message += (char)entity->powerupType;
     }
 
     message += (char)players.size();
@@ -163,7 +165,7 @@ void Gamerules::parseJoinRequest(StringReader& reader,Connection* con) {
         if(players.size() < 4) {
             std::string name = reader.get();
             int id = findFreePlayerId();
-            Player player(id,name,Vector2f(world.getSpawnPoint(id)),con);
+            Player player(id,name,sf::Vector2f(world->getSpawnPoint(id)),con);
             players.push_back(player);
         } else {
             sendErrorJoinResponse(2,con);
@@ -220,9 +222,11 @@ void Gamerules::parseDisconnect(StringReader& reader) {
 
 void Gamerules::sendMessage(Connection* con, std::string message) {
     Msg msg;
-    msg.buffer = message.c_str();
+    msg.buffer = new char[message.size() + 1];
+    strcpy(msg.buffer, message.c_str());
     msg.buffer_length = message.size();
     sendConnection(con,msg);
+    delete [] msg.buffer;
 }
 
 void Gamerules::sendMessageForAllPlayers(const std::string& message) {
@@ -240,8 +244,9 @@ std::map<Connection*,std::vector<std::string>> Gamerules::getMessages() {
         MsgQueue* messages = getReceivedMessages(i_node->con);
         auto j_node = messages->front;
         while(j_node != nullptr) {
-            connection_messages.push_back(std::string(j_node->buffer,j_node->buffer_length));
-            j_node = jnode->next;
+            connection_messages.push_back(std::string(j_node->message.buffer,
+                                                      j_node->message.buffer_length));
+            j_node = j_node->next;
         }
         all_messages.insert(std::pair<Connection*,
                             std::vector<std::string>>(i_node->con,connection_messages));

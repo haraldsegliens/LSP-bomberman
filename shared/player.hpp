@@ -1,19 +1,20 @@
-#ifndef PLAYER_H
-#define PLAYER_H
+#pragma once
 
 #include <string.h>
-#include <Time.hpp>
-#include <Vector2.hpp>
+#include <SFML/Graphics.hpp>
 #include "shared_enums.hpp"
-#include "gamerules.hpp"
-#include <vector>
 
 #ifdef CLIENT
 #define Player CPlayer
+#endif
 
-#include <RenderWindow.hpp>
-#include <Texture.hpp>
-#else
+class Player;
+
+#include "gamerules.hpp"
+#include "dynamite.hpp"
+#include <vector>
+
+#ifdef SERVER
 #include <list>
 #include "volatile_entities_manager.hpp"
 #endif
@@ -24,18 +25,17 @@ class Player {
     sf::Vector2<float> position;
     sf::Vector2<int> direction;
     Powerup powerup;
-    int power;
-    int speed;
-    int maxDynamiteCount;
+    unsigned int power;
+    unsigned int speed;
+    unsigned int maxDynamiteCount;
     bool dead;
 
 #ifdef CLIENT
     sf::Texture playerTexture;
 #else
     typedef enum {
-        KEY_PRESSED
+        KEY_PRESSED,
         NONE
-
     } InputBitState;
 
     Connection* playerConnection;
@@ -63,7 +63,7 @@ class Player {
     }
 
     bool isPressed(PlayerInputBits bit) {
-        return isBitSet(playerInput,bit)
+        return isBitSet(playerInput,bit);
     }
 
 #endif
@@ -74,9 +74,6 @@ public:
     Player(int _id,std::string _name,sf::Vector2<float> _position,sf::Vector2<int> _direction, int order);
 #endif
     ~Player();
-
-    bool isReady() { return ready; }
-    void setReady(bool ready) { this->ready = ready; }
 
     int getId() { return id; } 
 
@@ -113,7 +110,7 @@ public:
     }
 
     bool isDead() { return dead; }
-    bool setDead(bool a) { dead = a; }
+    void setDead(bool a) { dead = a; }
 
 #ifdef CLIENT
     void draw(sf::RenderWindow& window);
@@ -132,7 +129,7 @@ public:
 
     void removeDynamite(Dynamite* dynamite);
 
-    bool isReady() {return ready;}
+    bool isReady() { return ready; }
     void setReady(bool a) {
         ready = a;
     }
@@ -142,5 +139,3 @@ public:
     }
 #endif
 };
-
-#endif

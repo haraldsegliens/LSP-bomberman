@@ -1,56 +1,53 @@
 #include "c_screen.hpp"
 #include <iostream>
+#include <bitset>
 
 CScreen::CScreen() : window(sf::VideoMode(800, 600), "Bomberman") {
     std::cout << "Creating CScreen" << std::endl;
 }
 
-CScreen::~CScreen() {
-
-}
+CScreen::~CScreen() {}
 
 short CScreen::bindActionToShort(sf::Event::KeyEvent keyPressed) {
-    bitset<16> action;
+    std::bitset<16> action;
     action.reset();
-    sf::Keyboard keyboard;
-    switch (keyPressed.code)
-    {
-        case keyboard.Up :
+    switch (keyPressed.code) {
+        case sf::Keyboard::Key::Up :
             action.set(0);
-        case keyboard.Down:
+        case sf::Keyboard::Key::Down:
             action.set(1);
-        case keyboard.Left:
+        case sf::Keyboard::Key::Left:
             action.set(2);
-        case keyboard.Right:
+        case sf::Keyboard::Key::Right:
             action.set(3);
-        case keyboard.Space:
+        case sf::Keyboard::Key::Space:
             action.set(4);
-        case keyboard.R :
+        case sf::Keyboard::Key::R :
             action.set(5);
-        case keyboard.E :
+        case sf::Keyboard::Key::E :
             action.set(6);
-        // case keyboard. :
+        // case sf::Keyboard::Key:: :
         //     action.set(7);
-        // case keyboard. :
+        // case sf::Keyboard::Key:: :
         //     action.set(8);
-        case keyboard.T :
+        case sf::Keyboard::Key::T :
             action.set(9);
-        case keyboard.D :
+        case sf::Keyboard::Key::D :
             action.set(10);
-        case keyboard.L :
+        case sf::Keyboard::Key::L :
             action.set(11);
-        case keyboard.Num1 :
+        case sf::Keyboard::Key::Num1 :
             action.set(12);
-        case keyboard.Num2 :
+        case sf::Keyboard::Key::Num2 :
             action.set(13);
-        case keyboard.Num3 :
+        case sf::Keyboard::Key::Num3 :
             action.set(14);
-        case keyboard.Num4 :
+        case sf::Keyboard::Key::Num4 :
             action.set(15);
+        default:
+            break;
     }
-    short short_action = (short)(action.to_ulong());
-    
-    return short_action;
+    return (short)(action.to_ulong());
 }
 
 WindowEvents CScreen::draw(Gamerules* gamerules) {
@@ -68,7 +65,6 @@ WindowEvents CScreen::draw(Gamerules* gamerules) {
                 case sf::Event::KeyPressed:
                     // user is giving some input
                     events.inputState = bindActionToShort(event.key);
-                    sendPlayerInput(socket, playerId, action);
                     break;
                 default:
                     break;

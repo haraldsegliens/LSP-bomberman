@@ -1,3 +1,4 @@
+#include <iostream>
 #include "../shared/world.hpp"
 
 CWorld::CWorld() {
@@ -7,19 +8,19 @@ CWorld::CWorld() {
     }
 }
 
-~CWorld::CWorld() {}
+CWorld::~CWorld() {}
 
 void CWorld::cleanup() {}
 
 void CWorld::draw(sf::RenderWindow& window) {
     for(int x = 0; x < getWidth(); x++) {
         for(int y = 0; y < getHeight(); y++) {
-            WorldCell cell = get(sf::Vector2<int>(x,y));
+            WorldCell cell = getCell(sf::Vector2<int>(x,y));
             sf::RectangleShape rectangle;
             rectangle.setSize(sf::Vector2f(SPRITE_CELL_SIZE, SPRITE_CELL_SIZE));
             rectangle.setPosition(((float)x + 0.5f) * SPRITE_CELL_SIZE, 
                                   ((float)y + 0.5f) * SPRITE_CELL_SIZE);
-            rectangle.setTexture(&tileMap);
+            rectangle.setTexture(&tileset);
             rectangle.setTextureRect(sf::IntRect(SPRITE_CELL_SIZE*((int)cell), 0, SPRITE_CELL_SIZE, SPRITE_CELL_SIZE));
             window.draw(rectangle);
         }
@@ -29,4 +30,8 @@ void CWorld::draw(sf::RenderWindow& window) {
 void CWorld::loadMap(std::vector<WorldCell>& _map,sf::Vector2<int> _mapSize) {
     mapSize = _mapSize;
     map = _map;
+}
+
+void CWorld::changeCell(sf::Vector2<int> pos, WorldCell value) {
+    map[pos.x + pos.y * mapSize.x] = value;
 }

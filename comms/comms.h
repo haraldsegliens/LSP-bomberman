@@ -50,7 +50,7 @@ void sendConnection(Connection* con, Msg message);
 MsgQueue* getReceivedMessages(Connection* con);
 void freeConnection(Connection* con);
 
-struct ConListNode_t {
+typedef struct ConListNode_t {
     struct ConListNode_t* next;
     Connection* con;
 } ConListNode;

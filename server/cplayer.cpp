@@ -23,13 +23,13 @@ void Player::updateKeepAlive(Gamerules* gamerules) {
 }
 
 void Player::update(Gamerules* gamerules) {
-    updateKeepAlive();
+    updateKeepAlive(gamerules);
     if(isTemporaryPowerup() && endTemporaryPowerup < gamerules->getCurrentTime()) {
         powerup = Powerup::NONE;
     }
     SurroundingInfo info = gamerules->scanSurrounding(gamerules,position);
     handleSurroundings(gamerules,info);
-    handlePlayerInput(info);
+    handlePlayerInput(gamerules,info);
 }
 
 void Player::handleSurroundings(Gamerules* gamerules, SurroundingInfo& info) {
@@ -40,11 +40,13 @@ void Player::handleSurroundings(Gamerules* gamerules, SurroundingInfo& info) {
         return;
     }
     VolatileEntity* powerupEntity = info.findVolatileEntity(VolatileEntityType::FIRE);
-    if(powerupEntity != null) {
+    if(powerupEntity != nullptr) {
         powerup = powerupEntity->powerupType;
         endTemporaryPowerup = gamerules->getCurrentTime() + sf::seconds(POWERUP_DURATION);
         gamerules->getVolatileEntitiesManager()->deleteEntity(powerupEntity);
-        info.entities.remove(powerupEntity);
+        info.entities.erase(std::find(
+            info.entities.begin(), info.entities.end(), powerupEntity
+        ));
         return;
     }
 }
@@ -74,14 +76,14 @@ void Player::handlePlayerInput(Gamerules* gamerules, SurroundingInfo& info) {
             info.entities.size() == 0 && info.dynamites.size() == 0 && 
             freeGround.x != -1) {
             //create dynamite
-            info.dynamites.push_back(gamerules->createDynamite(freeGround,this));
+            info.dynamites.push_back(gamerules->createDynamite(sf::Vector2f(freeGround),power,this));
         }
     }
 
     if(isOneTimePressed(PlayerInputBits::DETONATE_REMOTELY)) {
-        if(powerup == Powerup::KICK_DYNAMITE) {
-            for(auto& it : currentDynamites) {
-                *currentDynamites.explode();
+        if(powerup == Powerup::DYNAMITE_KICK) {
+            for(Dynamite* dynamite : currentDynamites) {
+                dynamite->explode(gamerules);
             }
             currentDynamites.clear();
         }
@@ -89,7 +91,7 @@ void Player::handlePlayerInput(Gamerules* gamerules, SurroundingInfo& info) {
 }
 
 void Player::movePlayer(Gamerules* gamerules) {
-    Vector2<float> cell_position(floor(position.x) + 0.5f, floor(position.y) + 0.5f);
+    sf::Vector2f cell_position(floor(position.x) + 0.5f, floor(position.y) + 0.5f);
     if(direction.x != 0) {
         //horizontāli
         if(cell_position.y - PLAYER_INCELL_RANGE/2 > position.y &&
@@ -103,7 +105,7 @@ void Player::movePlayer(Gamerules* gamerules) {
             return;
         }
     }
-    Vector2<float> targetCell = cell_position + direction;
+    sf::Vector2f targetCell = cell_position + sf::Vector2f(direction);
     SurroundingInfo targetInfo = gamerules->scanSurrounding(gamerules, targetCell);
     if(!targetInfo.containsWorldCell(WorldCell::GROUND)) {
         return;
@@ -132,5 +134,5 @@ void Player::movePlayer(Gamerules* gamerules) {
 }
 
 void Player::removeDynamite(Dynamite* dynamite) {
-    currentDynamites.remove(currentDynamites);
+    currentDynamites.erase(std::find(currentDynamites.begin(),currentDynamites.end(),dynamite));
 }
