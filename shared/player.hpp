@@ -4,15 +4,17 @@
 #include <SFML/Graphics.hpp>
 #include "shared_enums.hpp"
 
+#ifdef CLIENT
+#define Player CPlayer
+#endif
+
 class Player;
 
 #include "gamerules.hpp"
 #include "dynamite.hpp"
 #include <vector>
 
-#ifdef CLIENT
-#define Player CPlayer
-#else
+#ifdef SERVER
 #include <list>
 #include "volatile_entities_manager.hpp"
 #endif

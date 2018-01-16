@@ -31,3 +31,7 @@ void CWorld::loadMap(std::vector<WorldCell>& _map,sf::Vector2<int> _mapSize) {
     mapSize = _mapSize;
     map = _map;
 }
+
+void CWorld::changeCell(sf::Vector2<int> pos, WorldCell value) {
+    map[pos.x + pos.y * mapSize.x] = value;
+}

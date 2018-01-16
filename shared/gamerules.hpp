@@ -73,9 +73,6 @@ class Gamerules {
     std::list<Dynamite> dynamites;
 #endif
 
-    //threads
-    
-
     void handleLobbyState();
     void handleInitState();
     void handleGameState();
@@ -177,6 +174,10 @@ public:
     void handleMainLoop();
     void parseMessages();
     void cleanup();
+
+    GameState getState() {
+        return state;
+    }
 
 #ifdef CLIENT
     void ready();

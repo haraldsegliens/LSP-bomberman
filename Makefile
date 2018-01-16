@@ -2,23 +2,22 @@ CCX = g++
 CC = gcc
 CXXFLAGS = -std=c++11 -g -Wall -Werror
 CFLAGS = -std=c90 -g -Wall -Werror
-
-SERVER_OBJ: bin/server/ \
-			bin/server/cgamerules.o bin/server/gamerules_shared.o \
-			bin/server/cgamerules_messages.o bin/server/cplayer.o \
-			bin/server/cplayer.o bin/server/cworld.o \
+SERVER_OBJ = bin/server/cgamerules.o bin/server/gamerules_shared.o \
+			bin/server/cgamerules_messages.o bin/server/cplayer.o bin/server/cworld.o \
 			bin/server/cvolatile_entities_manager.o \
 			bin/server/volatile_entities_manager_shared.o \
 			bin/server/cdynamite.o
-
-CLIENT_OBJ: bin/client/ \
-			bin/client/c_gamerules.o bin/client/gamerules_shared.o \
+CLIENT_OBJ = bin/client/c_gamerules.o bin/client/gamerules_shared.o \
 			bin/client/c_gamerules_messages.o bin/client/c_player.o \
 			bin/client/c_world.o bin/client/c_volatile_entities_manager.o \
 			bin/client/volatile_entities_manager_shared.o \
 			bin/client/c_dynamite.o bin/client/c_screen.o
 
+server_launcher: bin/server/ $(SERVER_OBJ) bin/comms.o bin/msg_queue.o server_launcher.cpp 
+	$(CCX) -o server_launcher $(SERVER_OBJ) bin/comms.o bin/msg_queue.o server_launcher.cpp -pthread -lsfml-graphics -lsfml-window -lsfml-system $(CXXFLAGS_SERVER)
 
+client_launcher: bin/client/ $(CLIENT_OBJ) bin/comms.o bin/msg_queue.o client_launcher.cpp
+	$(CCX) -o client_launcher $(CLIENT_OBJ) bin/comms.o bin/msg_queue.o client_launcher.cpp -pthread -lsfml-graphics -lsfml-window -lsfml-system $(CXXFLAGS_CLIENT)
 
 #serverside
 CXXFLAGS_SERVER = $(CXXFLAGS) -DSERVER
