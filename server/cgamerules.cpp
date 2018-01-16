@@ -2,14 +2,18 @@
 #include "../shared/string_reader.hpp"
 #include <math.h>
 
-Gamerules::Gamerules(int port) : mainLoop(&Gamerules::handleMainLoop, this),
+
+Gamerules::Gamerules(int port) : mainLoopOn(true),
                                  world(new World()),
                                  volatileEntitiesManager(new VolatileEntitiesManager()) {
     listener = createListener(port,10);
     cleanup();
+    mainLoop = std::thread(&Gamerules::handleMainLoop, this);
 }
 
 Gamerules::~Gamerules() {
+    mainLoopOn = false;
+    mainLoop.join();
     freeListener(listener);
 }
 

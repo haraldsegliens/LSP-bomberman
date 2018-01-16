@@ -1,7 +1,7 @@
 #include "gamerules.hpp"
 
 void Gamerules::handleMainLoop() {
-    while(true) {
+    while(mainLoopOn) {
         deltaTime = getCurrentTime() - lastLoopStart;
         lastLoopStart += deltaTime;
         switch(state) {

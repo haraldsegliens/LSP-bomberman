@@ -64,6 +64,7 @@ class Gamerules {
 
     //entities
     std::thread mainLoop;
+    bool mainLoopOn;
     std::unique_ptr<World> world;
     std::unique_ptr<VolatileEntitiesManager> volatileEntitiesManager;
     std::vector<Player> players;

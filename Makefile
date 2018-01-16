@@ -80,6 +80,9 @@ bin/client/c_screen.o: client/c_screen.cpp
 bin/client/: bin
 	mkdir -p bin/client
 
+bin/test_comms2: bin test/test_comms2.cpp bin/comms.o bin/msg_queue.o
+	$(CCX) -o bin/test_comms2 bin/comms.o bin/msg_queue.o test/test_comms2.cpp $(CXXFLAGS) -pthread
+
 #C communication module
 bin/test_comms: bin test/test_comms.c bin/comms.o bin/msg_queue.o
 	$(CC) -o bin/test_comms bin/comms.o bin/msg_queue.o test/test_comms.c $(CFLAGS) -pthread
@@ -98,4 +101,4 @@ check: bin/test_comms
 	sudo ./bin/test_comms multipleMsg
 
 clean:
-	rm -rf bin
+	rm -rf bin server_launcher client_launcher

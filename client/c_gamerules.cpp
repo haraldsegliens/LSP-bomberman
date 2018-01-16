@@ -1,7 +1,7 @@
 #include "../shared/gamerules.hpp"
 #include <iostream>
 
-CGamerules::CGamerules(std::string addr, int port, std::string _playerName) : mainLoop(&CGamerules::handleMainLoop, this), 
+CGamerules::CGamerules(std::string addr, int port, std::string _playerName) : mainLoopOn(true),
                                                                               world(new World()),
                                                                               volatileEntitiesManager(new VolatileEntitiesManager()),
                                                                               playerName(_playerName) {
@@ -15,9 +15,13 @@ CGamerules::CGamerules(std::string addr, int port, std::string _playerName) : ma
     if(!dynamiteTexture.loadFromFile("materials/dynamite.png")) {
         std::cout << "Error loading player texture: " << "materials/dynamite.png" << std::endl;
     }
+
+    mainLoop = std::thread(&CGamerules::handleMainLoop, this);
 }
 
 CGamerules::~CGamerules() {
+    mainLoopOn = false;
+    mainLoop.join();
     freeConnection(connection);
     delete [] m_addr;
 }
