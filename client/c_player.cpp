@@ -22,8 +22,8 @@ void CPlayer::draw(sf::RenderWindow& window) {
     int i = direction.x == 0 ? (direction.y == -1 ? 0 : 1) : (direction.x == -1 ? 2 : 3);
     sf::RectangleShape rectangle;
     rectangle.setSize(sf::Vector2f(SPRITE_PLAYER_SIZE_WIDTH, SPRITE_PLAYER_SIZE_HEIGTH));
-    rectangle.setPosition(position.x * SPRITE_CELL_SIZE + SPRITE_CELL_SIZE/2, 
-                          position.y * SPRITE_CELL_SIZE + SPRITE_PLAYER_SIZE_HEIGTH/2);
+    rectangle.setPosition(position.x * SPRITE_CELL_SIZE, 
+                          position.y * SPRITE_CELL_SIZE - SPRITE_PLAYER_SIZE_HEIGTH/2);
     rectangle.setTexture(&playerTexture);
     rectangle.setTextureRect(sf::IntRect(SPRITE_PLAYER_SIZE_WIDTH*i, 0, SPRITE_PLAYER_SIZE_WIDTH, SPRITE_PLAYER_SIZE_HEIGTH));
     window.draw(rectangle);

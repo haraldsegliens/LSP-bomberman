@@ -133,6 +133,10 @@ void CGamerules::parseGameStart(StringReader& reader) {
             int _direction = reader.getBinaryNumber(1);
             CPlayer player(_id,_name,sf::Vector2<float>(_x,_y),getDirectionFromNumber(_direction),i);
             players.push_back(player);
+            std::cout<<_id<<std::endl;
+            std::cout<<_name<<std::endl;
+            std::cout<<_x<<std::endl;
+            std::cout<<_y<<std::endl;
             std::cout << "Player: " << _name << std::endl; 
         }
 

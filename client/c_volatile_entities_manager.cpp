@@ -50,8 +50,8 @@ void CVolatileEntitiesManager::draw(sf::RenderWindow& window) {
             }
             sf::RectangleShape rectangle;
             rectangle.setSize(sf::Vector2f(SPRITE_CELL_SIZE, SPRITE_CELL_SIZE));
-            rectangle.setPosition(((float)x + 0.5f) * SPRITE_CELL_SIZE, 
-                                  ((float)y + 0.5f) * SPRITE_CELL_SIZE);
+            rectangle.setPosition((float)x * SPRITE_CELL_SIZE, 
+                                  (float)y * SPRITE_CELL_SIZE);
             rectangle.setTexture(&tileMap);
             rectangle.setTextureRect(sf::IntRect(SPRITE_CELL_SIZE*i, 0, SPRITE_CELL_SIZE, SPRITE_CELL_SIZE));
             window.draw(rectangle);
