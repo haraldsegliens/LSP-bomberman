@@ -3,6 +3,8 @@
 #include <bitset>
 
 CScreen::CScreen() : window(sf::VideoMode(800, 600), "Bomberman") {
+    // setting frame limit to reduce GPU resources usage
+    window.setFramerateLimit(60);
     std::cout << "Creating CScreen" << std::endl;
 }
 
