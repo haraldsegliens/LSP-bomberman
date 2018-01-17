@@ -73,7 +73,7 @@ void CGamerules::sendPlayerInput(short inputState) {
     std::string message;
     message += (char)PacketType::PLAYER_INPUT;
     message += (char)myClientId;
-    message += from2ByteIntegerToString((int)inputState);
+    message += fromIntegerToBigEndianBytes((int)inputState,2);
     sendMessage(connection,message);
 }
 
@@ -255,7 +255,8 @@ std::vector<std::string> Gamerules::getMessages() {
     MsgQueue* messages = getReceivedMessages(connection);
     auto j_node = messages->front;
     while(j_node != nullptr) {
-        connection_messages.push_back(std::string(j_node->message.buffer,j_node->message.buffer_length));
+        std::string message(j_node->message.buffer,j_node->message.buffer_length);
+        connection_messages.push_back(message);
         j_node = j_node->next;
     }
     return connection_messages;

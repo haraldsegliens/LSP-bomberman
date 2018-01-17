@@ -39,7 +39,7 @@ void* handleRecv(void* params) {
 
         Msg message;
         message.buffer = malloc(len+1);
-        strncpy(message.buffer,buffer,len);
+        memcpy(message.buffer,buffer,len);
         message.buffer[len] = '\0';
         message.buffer_length = len;
         enqueueMsgQueue(con->recvMessages,message);

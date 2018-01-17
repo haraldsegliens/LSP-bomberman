@@ -45,7 +45,7 @@ void Player::handleSurroundings(Gamerules* gamerules, SurroundingInfo& info) {
     if(powerupEntity != nullptr) {
         powerup = powerupEntity->powerupType;
         endTemporaryPowerup = gamerules->getCurrentTime() + sf::seconds(POWERUP_DURATION);
-        gamerules->getVolatileEntitiesManager()->deleteEntity(powerupEntity);
+        gamerules->getVolatileEntitiesManager().deleteEntity(powerupEntity);
         info.entities.erase(std::find(
             info.entities.begin(), info.entities.end(), powerupEntity
         ));

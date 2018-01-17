@@ -16,7 +16,7 @@ void CVolatileEntitiesManager::cleanup() {
 }
 
 void CVolatileEntitiesManager::clear() {
-    int i_max = gamerules->getWorld()->getWidth()*gamerules->getWorld()->getHeight();
+    int i_max = gamerules->getWorld().getWidth()*gamerules->getWorld().getHeight();
     for(int i = 0; i < i_max;i++) {
         volatileEntitiesMap[i].type = VolatileEntityType::EMPTY;
         volatileEntitiesMap[i].powerupType = Powerup::NONE;
@@ -27,7 +27,7 @@ void CVolatileEntitiesManager::load(Gamerules* _gamerules) {
     cleanup();
     gamerules = _gamerules;
     volatileEntitiesMap.clear();
-    int i_max = gamerules->getWorld()->getWidth()*gamerules->getWorld()->getHeight();
+    int i_max = gamerules->getWorld().getWidth()*gamerules->getWorld().getHeight();
     for(int i = 0; i < i_max;i++) {
         VolatileEntity entity;
         entity.type = VolatileEntityType::EMPTY;
@@ -37,8 +37,8 @@ void CVolatileEntitiesManager::load(Gamerules* _gamerules) {
 }
 
 void CVolatileEntitiesManager::draw(sf::RenderWindow& window) {
-    for(int x = 0; x < gamerules->getWorld()->getWidth(); x++) {
-        for(int y = 0; y < gamerules->getWorld()->getHeight(); y++) {
+    for(int x = 0; x < gamerules->getWorld().getWidth(); x++) {
+        for(int y = 0; y < gamerules->getWorld().getHeight(); y++) {
             VolatileEntity* entity = get(sf::Vector2<int>(x,y));
             int i = -1;
             if(entity->type == VolatileEntityType::FIRE) {

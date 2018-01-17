@@ -87,7 +87,8 @@ class Gamerules {
     sf::Vector2<int> getDirectionFromNumber(int i);
     int getNumberFromDirection(sf::Vector2<int> dir);
 
-    std::string from2ByteIntegerToString(int i);
+    std::string getSpecialNullTerminationString(std::string a, int size);
+    std::string fromIntegerToBigEndianBytes(int num,int n);
     void sendMessage(Connection* con, std::string message);
 
 #ifdef CLIENT
@@ -126,7 +127,7 @@ class Gamerules {
     Listener* listener;
     sf::Time initStart;
     sf::Time lastLobbyStatus;
-    
+
     std::map<Connection*,std::vector<std::string>> getMessages();
     void sendMessageForAllPlayers(const std::string& message);
 
@@ -166,8 +167,8 @@ public:
 #endif
     ~Gamerules();
 
-    World* getWorld();
-    VolatileEntitiesManager* getVolatileEntitiesManager();
+    World& getWorld();
+    VolatileEntitiesManager& getVolatileEntitiesManager();
     sf::Time getCurrentTime();
     sf::Time getDeltaTime();
     Dynamite* getDynamiteInPosition(sf::Vector2<int> position);

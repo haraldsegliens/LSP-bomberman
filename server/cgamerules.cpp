@@ -172,9 +172,9 @@ SurroundingInfo Gamerules::scanSurrounding(Gamerules* gamerules, sf::Vector2<flo
     info.position = _position;
     for(sf::Vector2<int> coord : coords) {
         info.worldCells.insert(std::pair<sf::Vector2<int>,WorldCell>(
-            coord,gamerules->getWorld()->getCell(coord)
+            coord,gamerules->getWorld().getCell(coord)
         ));
-        VolatileEntity* entity = gamerules->getVolatileEntitiesManager()->get(coord);
+        VolatileEntity* entity = gamerules->getVolatileEntitiesManager().get(coord);
         if(entity != nullptr) {
             info.entities.push_back(entity);
         }

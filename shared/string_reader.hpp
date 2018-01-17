@@ -26,7 +26,14 @@ public:
     }
 
     std::string getNullFixedString(size_t len) {
-        std::size_t nullChar = data.find("\0",pos);
+        //find first nullchar
+        std::size_t nullChar = std::string::npos;
+        for(size_t i = pos; i < pos + len-1; i++) {
+            if(data[i] == '\0') {
+                nullChar = i;
+                break;
+            }
+        }
         if(nullChar == std::string::npos) {
             return get(len);
         } else if(nullChar-pos < len) {

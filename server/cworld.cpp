@@ -12,19 +12,19 @@ World::~World() {}
 void World::cleanup() {
     sf::Vector2i _mapSize(13,13);
     std::vector<int> _map = {
-        2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
-        2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2,
-        2, 0, 2, 0, 2, 0, 2, 0, 2, 0, 2, 0, 2,
-        2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2,
-        2, 0, 2, 0, 2, 0, 2, 0, 2, 0, 2, 0, 2,
-        2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2,
-        2, 0, 2, 0, 2, 0, 2, 0, 2, 0, 2, 0, 2,
-        2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2,
-        2, 0, 2, 0, 2, 0, 2, 0, 2, 0, 2, 0, 2,
-        2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2,
-        2, 0, 2, 0, 2, 0, 2, 0, 2, 0, 2, 0, 2,
-        2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2,
-        2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2
+        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+        1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+        1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1,
+        1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+        1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1,
+        1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+        1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1,
+        1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+        1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1,
+        1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+        1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1,
+        1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
     };
     std::vector<sf::Vector2<int>> _playerSpawnPoints = {
         sf::Vector2<int>(1,1),sf::Vector2<int>(11,1),sf::Vector2<int>(1,11),sf::Vector2<int>(11,11)
@@ -49,7 +49,7 @@ void World::loadMap(std::vector<WorldCell>& _map,
 
 void World::changeCell(sf::Vector2<int> pos, WorldCell value, Gamerules* gamerules) {
     if(getCell(pos) == WorldCell::BOX && value == WorldCell::GROUND && (rand()%3) == 0) {
-        gamerules->getVolatileEntitiesManager()->createPowerup(pos,(Powerup)(rand() % 5));
+        gamerules->getVolatileEntitiesManager().createPowerup(pos,(Powerup)(rand() % 5));
     }
     map[pos.x + pos.y * mapSize.x] = value;
     WorldChange change;
