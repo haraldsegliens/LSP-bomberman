@@ -127,18 +127,10 @@ void CGamerules::parseGameStart(StringReader& reader) {
         std::cout << "reading " << playerCount << " players" << std::endl;
         for(int i = 0; i < playerCount; i++) {
             int _id = reader.getBinaryNumber(1);
-            std::cout << "id " << _id << std::endl;
             std::string _name = reader.getNullFixedString(23);
-             _name = "Testeris";
-            std::cout << "name " << _name << std::endl;
             float _x = reader.getDFloat(2);
-             _x = 10;
             float _y = reader.getDFloat(2);
-             _y = 10;
-            std::cout << "coords " << _x << std::endl;
-            std::cout << "coords " << _y << std::endl;
             int _direction = reader.getBinaryNumber(1);
-            std::cout << "direction " << _direction << std::endl;
             CPlayer player(_id,_name,sf::Vector2<float>(_x,_y),getDirectionFromNumber(_direction),i);
             players.push_back(player);
             std::cout << "Player: " << _name << std::endl; 
