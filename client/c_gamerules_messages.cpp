@@ -207,7 +207,7 @@ void CGamerules::parseObjects(StringReader& reader) {
             int _y = reader.getBinaryNumber(1);
             Powerup _powerup = (Powerup)reader.getBinaryNumber(1);
             VolatileEntity* entity = volatileEntitiesManager->get(sf::Vector2<int>(_x,_y));
-            entity->type = VolatileEntityType::FIRE;
+            entity->type = VolatileEntityType::POWERUP;
             entity->powerupType = _powerup;
         }
 

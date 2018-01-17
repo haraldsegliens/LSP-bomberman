@@ -9,8 +9,8 @@ CDynamite::~CDynamite() {}
 void CDynamite::draw(sf::RenderWindow& window) {
 	sf::RectangleShape rectangle;
     rectangle.setSize(sf::Vector2f(SPRITE_DYNAMITE_SIZE, SPRITE_DYNAMITE_SIZE));
-    rectangle.setPosition(position.x * SPRITE_DYNAMITE_SIZE, 
-                          position.y * SPRITE_DYNAMITE_SIZE - SPRITE_DYNAMITE_SIZE/2);
+    rectangle.setPosition(position.x * SPRITE_CELL_SIZE, 
+                          position.y * SPRITE_CELL_SIZE);
     rectangle.setTexture(dynamiteTexture);
     window.draw(rectangle);
 }
