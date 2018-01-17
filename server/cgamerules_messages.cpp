@@ -7,7 +7,6 @@ void Gamerules::parseMessages() {
         for(std::string msg : pair.second) {
             StringReader reader(msg);
             PacketType packetId = (PacketType)reader.getBinaryNumber(1);
-            std::cout << "Packet: " << packetId << std::endl;
             switch(packetId) {
                 case PacketType::JOIN_REQUEST:
                     parseJoinRequest(reader,pair.first);
@@ -72,7 +71,9 @@ void Gamerules::sendGameStart() {
 
 void Gamerules::sendMapUpdate() {
     std::vector<WorldChange> changes = world->popChanges();
-
+    if(changes.size() == 0) {
+        return;
+    }
     std::string message;
     message += (char)PacketType::MAP_UPDATE;
     message += fromIntegerToBigEndianBytes(changes.size(),2);

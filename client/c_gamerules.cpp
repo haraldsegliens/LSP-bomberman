@@ -70,6 +70,7 @@ void CGamerules::handleGameState() {
     WindowEvents events = screen->draw(this);
     if(events.windowClosed) {
         sendDisconnect();
+        state = GameState::END;
     } else if(lastInputState != events.inputState) {
         sendPlayerInput(events.inputState);
     }

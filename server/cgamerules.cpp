@@ -101,7 +101,11 @@ void Gamerules::handleGameState() {
     cleanupDynamites();
 
     sendMapUpdate();
-    sendObjects();
+
+    if((lastObjects - getCurrentTime()).asSeconds() > 0.01f) {
+        sendObjects();
+        lastObjects = getCurrentTime();
+    }
 
     if(!world->isClosing() && endTime < getCurrentTime()) {
         world->startClosing();

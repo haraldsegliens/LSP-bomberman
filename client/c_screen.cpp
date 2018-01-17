@@ -52,7 +52,6 @@ short CScreen::bindActionToShort(sf::Event::KeyEvent keyPressed) {
 
 WindowEvents CScreen::draw(Gamerules* gamerules) {
     WindowEvents events;
-
     if(window.isOpen()) {
         sf::Event event;
         while (window.pollEvent(event)) {
@@ -74,6 +73,7 @@ WindowEvents CScreen::draw(Gamerules* gamerules) {
         window.clear(sf::Color::Black);
         gamerules->draw(window);
         window.display();
+        events.windowClosed = false;
     } else {
         events.windowClosed = true;
     }

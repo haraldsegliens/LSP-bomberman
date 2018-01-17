@@ -11,7 +11,6 @@ void CGamerules::parseMessages() {
     for(auto msg : messages) {
         StringReader reader(msg);
         PacketType packetId = (PacketType)reader.getBinaryNumber(1);
-        std::cout << "Packet: " << packetId << std::endl;
         switch(packetId) {
             case PacketType::JOIN_RESPONSE:
                 parseJoinResponse(reader);

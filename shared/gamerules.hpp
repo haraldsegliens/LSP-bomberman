@@ -125,6 +125,7 @@ class Gamerules {
     Listener* listener;
     sf::Time initStart;
     sf::Time lastLobbyStatus;
+    sf::Time lastObjects;
 
     std::map<Connection*,std::vector<std::string>> getMessages();
     void sendMessageForAllPlayers(const std::string& message);
