@@ -29,7 +29,7 @@ void Player::update(Gamerules* gamerules) {
     if(isTemporaryPowerup() && endTemporaryPowerup < gamerules->getCurrentTime()) {
         powerup = Powerup::NONE;
     }
-    SurroundingInfo info = gamerules->scanSurrounding(gamerules,position);
+    SurroundingInfo info = gamerules->scanSurrounding(position);
     handleSurroundings(gamerules,info);
     handlePlayerInput(gamerules,info);
 }
@@ -45,7 +45,7 @@ void Player::handleSurroundings(Gamerules* gamerules, SurroundingInfo& info) {
     if(powerupEntity != nullptr) {
         powerup = powerupEntity->powerupType;
         endTemporaryPowerup = gamerules->getCurrentTime() + sf::seconds(POWERUP_DURATION);
-        gamerules->getVolatileEntitiesManager().deleteEntity(powerupEntity);
+        gamerules->getVolatileEntitiesManager()->deleteEntity(powerupEntity);
         info.entities.erase(std::find(
             info.entities.begin(), info.entities.end(), powerupEntity
         ));
@@ -108,7 +108,7 @@ void Player::movePlayer(Gamerules* gamerules) {
         }
     }
     sf::Vector2f targetCell = cell_position + sf::Vector2f(direction);
-    SurroundingInfo targetInfo = gamerules->scanSurrounding(gamerules, targetCell);
+    SurroundingInfo targetInfo = gamerules->scanSurrounding(targetCell);
     if(!targetInfo.containsWorldCell(WorldCell::GROUND)) {
         return;
     }

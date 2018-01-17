@@ -24,8 +24,6 @@ extern "C" {
 #include "string_reader.hpp"
 
 #ifdef CLIENT
-#include <memory>
-
 #include "../client/c_screen.hpp"
 #define KEEP_ALIVE_PERIOD 1.0f
 
@@ -65,8 +63,8 @@ class Gamerules {
     //entities
     std::thread mainLoop;
     bool mainLoopOn;
-    std::unique_ptr<World> world;
-    std::unique_ptr<VolatileEntitiesManager> volatileEntitiesManager;
+    World* world;
+    VolatileEntitiesManager* volatileEntitiesManager;
     std::vector<Player> players;
 #ifdef CLIENT
     std::vector<Dynamite> dynamites;
@@ -167,8 +165,8 @@ public:
 #endif
     ~Gamerules();
 
-    World& getWorld();
-    VolatileEntitiesManager& getVolatileEntitiesManager();
+    World* getWorld();
+    VolatileEntitiesManager* getVolatileEntitiesManager();
     sf::Time getCurrentTime();
     sf::Time getDeltaTime();
     Dynamite* getDynamiteInPosition(sf::Vector2<int> position);
@@ -187,6 +185,6 @@ public:
     void draw(sf::RenderWindow& window);
 #else
     Dynamite* createDynamite(sf::Vector2<float> _position, unsigned int _power, Player* _owner);
-    SurroundingInfo scanSurrounding(Gamerules* gamerules, sf::Vector2<float> _position);
+    SurroundingInfo scanSurrounding(sf::Vector2<float> _position);
 #endif
 };

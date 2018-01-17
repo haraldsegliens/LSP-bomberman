@@ -23,12 +23,12 @@ void Gamerules::handleMainLoop() {
     }
 }
 
-World& Gamerules::getWorld() {
-    return *world;
+World* Gamerules::getWorld() {
+    return world;
 }
 
-VolatileEntitiesManager& Gamerules::getVolatileEntitiesManager() {
-    return *volatileEntitiesManager;
+VolatileEntitiesManager* Gamerules::getVolatileEntitiesManager() {
+    return volatileEntitiesManager;
 }
 
 sf::Time Gamerules::getCurrentTime() {

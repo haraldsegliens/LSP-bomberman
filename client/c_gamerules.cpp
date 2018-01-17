@@ -32,6 +32,8 @@ CGamerules::~CGamerules() {
     if(connection != nullptr) {
         freeConnection(connection);
     }
+    delete world;
+    delete volatileEntitiesManager;
     delete [] m_addr;
 }
 

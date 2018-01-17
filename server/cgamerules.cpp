@@ -22,6 +22,8 @@ Gamerules::~Gamerules() {
     if(listener != nullptr) {
         freeListener(listener);
     }
+    delete world;
+    delete volatileEntitiesManager;
 }
 
 void Gamerules::cleanup() {
@@ -106,7 +108,7 @@ void Gamerules::handleGameState() {
     }
 
     int alive = countAlive();
-    if(alive <= 1) {
+    if(alive < MINIMUM_PLAYERS) {
         sendGameOver();
         cleanup();
     }
@@ -165,16 +167,16 @@ std::vector<sf::Vector2<int>> Gamerules::getSurroundingCoords(sf::Rect<float> bo
     return coords;
 }
 
-SurroundingInfo Gamerules::scanSurrounding(Gamerules* gamerules, sf::Vector2<float> _position) {
+SurroundingInfo Gamerules::scanSurrounding(sf::Vector2<float> _position) {
     sf::Rect<float> box = getSurroundingBox(_position);
     std::vector<sf::Vector2<int>> coords = getSurroundingCoords(box);
     SurroundingInfo info;
     info.position = _position;
     for(sf::Vector2<int> coord : coords) {
         info.worldCells.insert(std::pair<sf::Vector2<int>,WorldCell>(
-            coord,gamerules->getWorld().getCell(coord)
+            coord,world->getCell(coord)
         ));
-        VolatileEntity* entity = gamerules->getVolatileEntitiesManager().get(coord);
+        VolatileEntity* entity = volatileEntitiesManager->get(coord);
         if(entity != nullptr) {
             info.entities.push_back(entity);
         }

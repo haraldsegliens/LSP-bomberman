@@ -38,8 +38,9 @@ struct VolatileEntity {
 };
 
 class VolatileEntitiesManager {
+    int width;
+    int height;
     std::vector<VolatileEntity> volatileEntitiesMap;//tādā pašā kārtībā, kā World šūnas
-    Gamerules* gamerules;
 #ifdef CLIENT
     sf::Texture tileMap;
 #else
@@ -57,10 +58,10 @@ public:
     void draw(sf::RenderWindow& window);
     void clear();
 #else
-    void update(Gamerules* _gamerules);
+    void update(Gamerules* gamerules);
     void deleteEntity(VolatileEntity* entity);
-    VolatileEntity* createFire(sf::Vector2<int> pos);
-    VolatileEntity* createPowerup(sf::Vector2<int> pos, Powerup powerupType);
+    VolatileEntity* createFire(sf::Vector2<int> pos, Gamerules* gamerules);
+    VolatileEntity* createPowerup(sf::Vector2<int> pos, Powerup powerupType, Gamerules* gamerules);
     std::list<VolatileEntityEvent>::iterator addEvent(VolatileEntity* entity, sf::Time time);
 #endif
 };

@@ -6,11 +6,12 @@ VolatileEntitiesManager::VolatileEntitiesManager() {
 
 VolatileEntitiesManager::~VolatileEntitiesManager() {}
 
-void VolatileEntitiesManager::load(Gamerules* _gamerules) {
+void VolatileEntitiesManager::load(Gamerules* gamerules) {
     cleanup();
-    gamerules = _gamerules;
     volatileEntitiesMap.clear();
-    int i_max = gamerules->getWorld().getWidth()*gamerules->getWorld().getHeight();
+    width = gamerules->getWorld()->getWidth();
+    height = gamerules->getWorld()->getHeight();
+    int i_max = width*height;
     for(int i = 0; i < i_max;i++) {
         VolatileEntity entity;
         entity.type = VolatileEntityType::EMPTY;
@@ -24,7 +25,7 @@ void VolatileEntitiesManager::cleanup() {
     events.clear();
 }
 
-void VolatileEntitiesManager::update(Gamerules* _gamerules) {
+void VolatileEntitiesManager::update(Gamerules* gamerules) {
     auto it = events.begin();
     while(it != events.end() && it->time <= gamerules->getCurrentTime()) {
         it->entity->type = VolatileEntityType::EMPTY;
@@ -39,7 +40,7 @@ void VolatileEntitiesManager::deleteEntity(VolatileEntity* entity) {
     events.erase(entity->event);
 }
 
-VolatileEntity* VolatileEntitiesManager::createFire(sf::Vector2<int> pos) {
+VolatileEntity* VolatileEntitiesManager::createFire(sf::Vector2<int> pos, Gamerules* gamerules) {
     VolatileEntity* entity = get(pos);
     if(entity->type != VolatileEntityType::EMPTY) {
         deleteEntity(entity);
@@ -49,7 +50,7 @@ VolatileEntity* VolatileEntitiesManager::createFire(sf::Vector2<int> pos) {
     return entity;
 }
 
-VolatileEntity* VolatileEntitiesManager::createPowerup(sf::Vector2<int> pos, Powerup powerupType) {
+VolatileEntity* VolatileEntitiesManager::createPowerup(sf::Vector2<int> pos, Powerup powerupType, Gamerules* gamerules) {
     VolatileEntity* entity = get(pos);
     entity->type = VolatileEntityType::POWERUP;
     entity->powerupType = powerupType;
