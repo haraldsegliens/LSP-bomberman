@@ -13,6 +13,8 @@ CLIENT_OBJ = bin/client/c_gamerules.o bin/client/gamerules_shared.o \
 			bin/client/volatile_entities_manager_shared.o \
 			bin/client/c_dynamite.o bin/client/c_screen.o
 
+all: server_launcher client_launcher
+
 server_launcher: bin/server/ $(SERVER_OBJ) bin/comms.o bin/msg_queue.o server_launcher.cpp 
 	$(CCX) -o server_launcher $(SERVER_OBJ) bin/comms.o bin/msg_queue.o server_launcher.cpp -pthread -lsfml-graphics -lsfml-window -lsfml-system $(CXXFLAGS_SERVER)
 

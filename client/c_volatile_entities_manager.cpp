@@ -40,6 +40,9 @@ void CVolatileEntitiesManager::draw(sf::RenderWindow& window) {
     for(int x = 0; x < width; x++) {
         for(int y = 0; y < height; y++) {
             VolatileEntity* entity = get(sf::Vector2<int>(x,y));
+            if(entity == nullptr) {
+                continue;
+            }
             int i = -1;
             if(entity->type == VolatileEntityType::FIRE) {
                 i = 0;

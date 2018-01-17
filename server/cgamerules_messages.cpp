@@ -188,11 +188,9 @@ void Gamerules::parseKeepAlive(StringReader& reader) {
 void Gamerules::parseReady(StringReader& reader) {
     if(state == GameState::LOBBY || state == GameState::INIT) {
         int player_id = reader.getBinaryNumber(1);
-        for(Player& player : players){
-            if(player.getId() == player_id) {
-                player.setReady(true);
-                return;
-            }
+        Player* player = getPlayer(player_id);
+        if(player != nullptr) {
+            player->setReady(true);
         }
     }
 }
@@ -201,22 +199,18 @@ void Gamerules::parsePlayerInput(StringReader& reader) {
     if(state == GameState::GAME) {
         int player_id = reader.getBinaryNumber(1);
         short inputState = reader.getBinaryNumber(2);
-        for(Player& player : players){
-            if(player.getId() == player_id) {
-                player.setInputState(inputState);
-                return;
-            }
+        Player* player = getPlayer(player_id);
+        if(player != nullptr) {
+            player->setInputState(inputState);
         }
     }
 }
 
 void Gamerules::parseDisconnect(StringReader& reader) {
     int player_id = reader.getBinaryNumber(1);
-    for(Player& player : players){
-        if(player.getId() == player_id) {
-            player.setDestroy(true);
-            return;
-        }
+    Player* player = getPlayer(player_id);
+    if(player != nullptr) {
+        player->setDestroy(true);
     }
 }
 

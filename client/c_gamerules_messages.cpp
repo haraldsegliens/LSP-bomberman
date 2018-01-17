@@ -184,7 +184,6 @@ void CGamerules::parseObjects(StringReader& reader) {
     if(state == GameState::GAME) {
         dynamites.clear();
 
-        //int timer = reader.getBinaryNumber(2);
         endTime = getCurrentTime() + sf::seconds(reader.getBinaryNumber(2));
 
         int dynamiteCount = reader.getBinaryNumber(1);
@@ -241,6 +240,7 @@ void CGamerules::parseObjects(StringReader& reader) {
             if(std::find(playerIds.begin(),playerIds.end(),it->getId()) == playerIds.end()) {
                 it->setDead(true);
             }
+            ++it;
         }
 
         lastReceivedMessage = getCurrentTime();

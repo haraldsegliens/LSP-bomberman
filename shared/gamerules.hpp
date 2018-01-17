@@ -101,6 +101,7 @@ class Gamerules {
     char* m_addr;
 
     sf::Time lastKeepAlive;
+    sf::Time lastDraw;
     short lastInputState;
 
     void toConnectionErrorState();
@@ -148,9 +149,9 @@ class Gamerules {
     unsigned int countReady();
     unsigned int countAlive();
 
-    sf::Rect<float> getSurroundingBox(sf::Vector2<float> _position) {
-        return sf::Rect<float>(_position.x - 0.5f,_position.y - 0.5f,
-                           _position.x + 0.5f,_position.y + 0.5f);
+    sf::Rect<float> getSurroundingBox(sf::Vector2<float> _position, float size) {
+        float half = size/2;
+        return sf::Rect<float>(_position.x - half,_position.y - half, size,size);
     }
     std::vector<sf::Vector2<int>> getSurroundingCoords(sf::Rect<float> box);
     void cleanupDynamites();
@@ -186,6 +187,6 @@ public:
     void draw(sf::RenderWindow& window);
 #else
     Dynamite* createDynamite(sf::Vector2<float> _position, unsigned int _power, Player* _owner);
-    SurroundingInfo scanSurrounding(sf::Vector2<float> _position);
+    SurroundingInfo scanSurrounding(sf::Vector2<float> _position, float size);
 #endif
 };

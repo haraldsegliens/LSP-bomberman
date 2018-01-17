@@ -21,6 +21,7 @@ Gamerules::~Gamerules() {
     }
     if(listener != nullptr) {
         freeListener(listener);
+        listener = nullptr;
     }
     delete world;
     delete volatileEntitiesManager;
@@ -31,6 +32,7 @@ void Gamerules::cleanup() {
     state = GameState::LOBBY;
     world->cleanup();
     volatileEntitiesManager->cleanup();
+    volatileEntitiesManager->load(this);
     players.clear();
     dynamites.clear();
 }
@@ -102,7 +104,7 @@ void Gamerules::handleGameState() {
 
     sendMapUpdate();
 
-    if((lastObjects - getCurrentTime()).asSeconds() > 0.01f) {
+    if((getCurrentTime() - lastObjects).asSeconds() > 0.01f) {
         sendObjects();
         lastObjects = getCurrentTime();
     }
@@ -112,7 +114,8 @@ void Gamerules::handleGameState() {
     }
 
     int alive = countAlive();
-    if(alive < MINIMUM_PLAYERS) {
+    //if(alive <= 1) { 
+    if(alive == 0) {
         sendGameOver();
         cleanup();
     }
@@ -171,8 +174,8 @@ std::vector<sf::Vector2<int>> Gamerules::getSurroundingCoords(sf::Rect<float> bo
     return coords;
 }
 
-SurroundingInfo Gamerules::scanSurrounding(sf::Vector2<float> _position) {
-    sf::Rect<float> box = getSurroundingBox(_position);
+SurroundingInfo Gamerules::scanSurrounding(sf::Vector2<float> _position, float size) {
+    sf::Rect<float> box = getSurroundingBox(_position,size);
     std::vector<sf::Vector2<int>> coords = getSurroundingCoords(box);
     SurroundingInfo info;
     info.position = _position;
@@ -187,13 +190,13 @@ SurroundingInfo Gamerules::scanSurrounding(sf::Vector2<float> _position) {
     }
 
     for(Dynamite& dynamite : dynamites) {
-        if(box.intersects(getSurroundingBox(dynamite.getPosition()))){
+        if(box.intersects(getSurroundingBox(dynamite.getPosition(),1.0f))){
            info.dynamites.push_back(&dynamite);
         }
     }
 
     for(Player& player : players) {
-        if(box.intersects(getSurroundingBox(player.getPosition()))){
+        if(box.intersects(getSurroundingBox(player.getPosition(),1.0f))){
            info.players.push_back(&player);
         }
     }

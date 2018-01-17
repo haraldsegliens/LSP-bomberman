@@ -1,6 +1,5 @@
 #include "c_screen.hpp"
 #include <iostream>
-#include <bitset>
 
 CScreen::CScreen() : window(sf::VideoMode(800, 600), "Bomberman") {
     // setting frame limit to reduce GPU resources usage
@@ -10,50 +9,48 @@ CScreen::CScreen() : window(sf::VideoMode(800, 600), "Bomberman") {
 
 CScreen::~CScreen() {}
 
-short CScreen::bindActionToShort(sf::Event::KeyEvent keyPressed) {
-    std::bitset<16> action;
-    action.reset();
+void CScreen::bindActionToShort(sf::Event::KeyEvent keyPressed, short& event) {
     switch (keyPressed.code) {
         case sf::Keyboard::Key::Up :
-            action.set(0);
+            event = event | (1 << UP);
         case sf::Keyboard::Key::Down:
-            action.set(1);
+            event = event | (1 << DOWN);
         case sf::Keyboard::Key::Left:
-            action.set(2);
+            event = event | (1 << LEFT);
         case sf::Keyboard::Key::Right:
-            action.set(3);
+            event = event | (1 << RIGHT);
         case sf::Keyboard::Key::Space:
-            action.set(4);
+            event = event | (1 << PLANT_BOMB);
         case sf::Keyboard::Key::R :
-            action.set(5);
+            event = event | (1 << DETONATE_REMOTELY);
         case sf::Keyboard::Key::E :
-            action.set(6);
+            event = event | (1 << KICK_DYNAMITE);
         // case sf::Keyboard::Key:: :
         //     action.set(7);
         // case sf::Keyboard::Key:: :
         //     action.set(8);
         case sf::Keyboard::Key::T :
-            action.set(9);
+            event = event | (1 << 9);
         case sf::Keyboard::Key::D :
-            action.set(10);
+            event = event | (1 << 10);
         case sf::Keyboard::Key::L :
-            action.set(11);
+            event = event | (1 << 11);
         case sf::Keyboard::Key::Num1 :
-            action.set(12);
+            event = event | (1 << 12);
         case sf::Keyboard::Key::Num2 :
-            action.set(13);
+            event = event | (1 << 13);
         case sf::Keyboard::Key::Num3 :
-            action.set(14);
+            event = event | (1 << 14);
         case sf::Keyboard::Key::Num4 :
-            action.set(15);
+            event = event | (1 << 15);
         default:
             break;
     }
-    return (short)(action.to_ulong());
 }
 
 WindowEvents CScreen::draw(Gamerules* gamerules) {
     WindowEvents events;
+    events.inputState = 0;
     if(window.isOpen()) {
         sf::Event event;
         while (window.pollEvent(event)) {
@@ -65,13 +62,14 @@ WindowEvents CScreen::draw(Gamerules* gamerules) {
                     break;
                 case sf::Event::KeyPressed:
                     // user is giving some input
-                    events.inputState = bindActionToShort(event.key);
+                    bindActionToShort(event.key,events.inputState);
                     break;
                 default:
                     break;
             }
         }
-
+        sf::View view(sf::FloatRect(0, 0, gamerules->getWorld()->getWidth()*SPRITE_CELL_SIZE, gamerules->getWorld()->getHeight()*SPRITE_CELL_SIZE));
+        window.setView(view);
         window.clear(sf::Color::Black);
         gamerules->draw(window);
         window.display();

@@ -6,14 +6,16 @@ Player::Player(int _id,
                std::string _name, 
                sf::Vector2<float> _position,
                Connection* _con,
-               Gamerules* gamerules) : id(_id), name(_name), position(_position),
+               Gamerules* gamerules) : id(_id), name(_name), 
                                                direction(sf::Vector2<int>(1,0)), 
                                                powerup(Powerup::NONE),power(1), 
                                                speed(1),maxDynamiteCount(1),
-                                               playerConnection(_con),
+                                               dead(false),playerConnection(_con),
                                                lastKeepAlive(gamerules->getCurrentTime()),
-                                               ready(false),playerInput(0),
-                                               lastProcessedPlayerInput(0) {}
+                                               ready(false),destroy(false),
+                                               playerInput(0), lastProcessedPlayerInput(0) {
+    position = sf::Vector2f(floor(_position.x) + 0.5f,floor(_position.y) + 0.5f);
+}
 
 Player::~Player() {}
 
@@ -29,7 +31,7 @@ void Player::update(Gamerules* gamerules) {
     if(isTemporaryPowerup() && endTemporaryPowerup < gamerules->getCurrentTime()) {
         powerup = Powerup::NONE;
     }
-    SurroundingInfo info = gamerules->scanSurrounding(position);
+    SurroundingInfo info = gamerules->scanSurrounding(position,PLAYER_CHECKBOX_SIZE_RELATIVE);
     handleSurroundings(gamerules,info);
     handlePlayerInput(gamerules,info);
 }
@@ -72,8 +74,8 @@ void Player::handlePlayerInput(Gamerules* gamerules, SurroundingInfo& info) {
         movePlayer(gamerules);
     }
 
-    sf::Vector2<int> freeGround = info.findWorldCell(WorldCell::GROUND);
     if(isOneTimePressed(PlayerInputBits::PLANT_BOMB)) {
+        sf::Vector2<int> freeGround = info.findWorldCell(WorldCell::GROUND);
         if(currentDynamites.size() < maxDynamiteCount && 
             info.entities.size() == 0 && info.dynamites.size() == 0 && 
             freeGround.x != -1) {
@@ -108,7 +110,7 @@ void Player::movePlayer(Gamerules* gamerules) {
         }
     }
     sf::Vector2f targetCell = cell_position + sf::Vector2f(direction);
-    SurroundingInfo targetInfo = gamerules->scanSurrounding(targetCell);
+    SurroundingInfo targetInfo = gamerules->scanSurrounding(targetCell,PLAYER_CHECKBOX_SIZE_RELATIVE);
     if(!targetInfo.containsWorldCell(WorldCell::GROUND)) {
         return;
     }

@@ -15,7 +15,7 @@ struct WindowEvents {
 class CScreen {
     sf::RenderWindow window;
 
-    short bindActionToShort(sf::Event::KeyEvent keyPressed);
+    void bindActionToShort(sf::Event::KeyEvent keyPressed, short& event);
 public:
     CScreen();
     ~CScreen();

@@ -1,5 +1,5 @@
 #include <iostream>
-#include <signal.h>
+#include <csignal>
 
 #include "shared/gamerules.hpp"
 

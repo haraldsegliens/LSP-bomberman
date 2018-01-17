@@ -31,6 +31,7 @@ CGamerules::~CGamerules() {
     }
     if(connection != nullptr) {
         freeConnection(connection);
+        connection = nullptr;
     }
     delete world;
     delete volatileEntitiesManager;
@@ -67,14 +68,22 @@ void CGamerules::handleInitState() {
 }
 
 void CGamerules::handleGameState() {
+    if((getCurrentTime() - lastDraw).asSeconds() < 0.02f) {
+        return;
+    }
     WindowEvents events = screen->draw(this);
     if(events.windowClosed) {
+        std::cout << "END" << std::endl;
         sendDisconnect();
         state = GameState::END;
     } else if(lastInputState != events.inputState) {
+        std::cout << "Player input: " << (unsigned int)events.inputState << std::endl;
         sendPlayerInput(events.inputState);
+        lastInputState = events.inputState;
     }
     handleLobbyState();
+
+    lastDraw = getCurrentTime();
 }
 
 void CGamerules::ready() {

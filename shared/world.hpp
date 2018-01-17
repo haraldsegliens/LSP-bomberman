@@ -24,6 +24,7 @@ class World {
     std::vector<WorldCell> map;//taja pašā kārtībā kā bija GameStart paketē
 #ifdef CLIENT
     sf::Texture tileset;
+    sf::VertexArray vertices;
 #else
     bool closing;
     int closingPathIndex;
