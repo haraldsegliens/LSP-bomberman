@@ -1,5 +1,6 @@
 #include "gamerules.hpp"
 #include <iostream>
+#include <cstring>
 
 void Gamerules::handleMainLoop() {
     while(mainLoopOn) {
@@ -22,12 +23,12 @@ void Gamerules::handleMainLoop() {
     }
 }
 
-World* Gamerules::getWorld() {
-    return &*world;
+World& Gamerules::getWorld() {
+    return *world;
 }
 
-VolatileEntitiesManager* Gamerules::getVolatileEntitiesManager() {
-    return &*volatileEntitiesManager;
+VolatileEntitiesManager& Gamerules::getVolatileEntitiesManager() {
+    return *volatileEntitiesManager;
 }
 
 sf::Time Gamerules::getCurrentTime() {
@@ -88,15 +89,27 @@ int Gamerules::getNumberFromDirection(sf::Vector2<int> dir) {
     }
 }
 
-std::string Gamerules::from2ByteIntegerToString(int i) {
-    std::string a;
-    a += (char)(i & 0xff);
-    a += (char)((i >> 8) & 0xff);
-    return a;
+std::string Gamerules::fromIntegerToBigEndianBytes(int num,int n) {
+    std::string bigEndian;
+    for(int i = n-1; i >= 0; i--){
+        bigEndian.push_back( (num >> (8*i)) & 0xff );
+    }
+    return bigEndian;
+}
+
+std::string Gamerules::getSpecialNullTerminationString(std::string a, int size) {
+    auto a_new = a.substr(0,23);
+    if(a_new.back() != '\0' && a_new.size() < 23) {
+        a_new += '\0';
+    }
+    return a_new;
 }
 
 void Gamerules::sendMessage(Connection* con, std::string message) {
-    char* message_dup = strndup(message.c_str(),message.size());
+    //std::string to char*
+    char* message_dup = new char[message.size()];
+    std::memcpy(message_dup,message.c_str(),message.size());
+
     Msg msg;
     msg.buffer = message_dup;
     msg.buffer_length = message.size();

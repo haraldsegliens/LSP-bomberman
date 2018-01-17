@@ -53,16 +53,12 @@ void Gamerules::sendGameStart() {
     message += (char)PacketType::GAME_START;
     message += (char)players.size();
     for(Player& player : players) {
-        auto name = player.getName().substr(0,23);
-        if(name.length() < 23) {
-            name += '\0';
-        }
         message += (char)player.getId();
-        message += name;
+        message += getSpecialNullTerminationString(player.getName(),23);
         int _x = fromFloatToDFloat(player.getPosition().x);
-        message += from2ByteIntegerToString(_x);
+        message += fromIntegerToBigEndianBytes(_x,2);
         int _y = fromFloatToDFloat(player.getPosition().y);
-        message += from2ByteIntegerToString(_y);
+        message += fromIntegerToBigEndianBytes(_y,2);
         message += (char)getNumberFromDirection(player.getDirection());
     }
     message += (char)world->getWidth();
@@ -79,7 +75,7 @@ void Gamerules::sendMapUpdate() {
 
     std::string message;
     message += (char)PacketType::MAP_UPDATE;
-    message += from2ByteIntegerToString(changes.size());
+    message += fromIntegerToBigEndianBytes(changes.size(),2);
     for(WorldChange change : changes) {
         message += (char)change.position.x;
         message += (char)change.position.y;
@@ -103,13 +99,13 @@ void Gamerules::sendObjects() {
     std::string message;
     message += (char)PacketType::OBJECTS;
     int timer = static_cast<int>((endTime - getCurrentTime()).asSeconds());
-    message += from2ByteIntegerToString(timer);
+    message += fromIntegerToBigEndianBytes(timer,2);
     message += (char)dynamites.size();
     for(Dynamite& dynamite : dynamites) {
         int _x = fromFloatToDFloat(dynamite.getPosition().x);
         int _y = fromFloatToDFloat(dynamite.getPosition().y);
-        message += from2ByteIntegerToString(_x);
-        message += from2ByteIntegerToString(_y);
+        message += fromIntegerToBigEndianBytes(_x,2);
+        message += fromIntegerToBigEndianBytes(_y,2);
     }
     std::vector<sf::Vector2i> fireEntityPositions = volatileEntitiesManager->getAllPositionsWithType(VolatileEntityType::FIRE);
     message += (char)fireEntityPositions.size();
@@ -134,8 +130,8 @@ void Gamerules::sendObjects() {
         if(!player.isDead()) {
             int _x = fromFloatToDFloat(player.getPosition().x);
             int _y = fromFloatToDFloat(player.getPosition().y);
-            message += from2ByteIntegerToString(_x);
-            message += from2ByteIntegerToString(_y);
+            message += fromIntegerToBigEndianBytes(_x,2);
+            message += fromIntegerToBigEndianBytes(_y,2);
             int _dir = getNumberFromDirection(player.getDirection());
             message += (char)_dir;
             message += (char)player.getPowerup();

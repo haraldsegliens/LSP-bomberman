@@ -52,9 +52,9 @@ void CGamerules::handleLobbyState() {
         lastKeepAlive = getCurrentTime();
     }
 
-    if((getCurrentTime() - lastReceivedMessage).asSeconds() > TIMEOUT_DURATION) {
+    /*if((getCurrentTime() - lastReceivedMessage).asSeconds() > TIMEOUT_DURATION) {
         toConnectionErrorState();
-    }
+    }*/
 }
 
 void CGamerules::handleInitState() {

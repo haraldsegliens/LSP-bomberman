@@ -10,7 +10,7 @@ void VolatileEntitiesManager::load(Gamerules* _gamerules) {
     cleanup();
     gamerules = _gamerules;
     volatileEntitiesMap.clear();
-    int i_max = gamerules->getWorld()->getWidth()*gamerules->getWorld()->getHeight();
+    int i_max = gamerules->getWorld().getWidth()*gamerules->getWorld().getHeight();
     for(int i = 0; i < i_max;i++) {
         VolatileEntity entity;
         entity.type = VolatileEntityType::EMPTY;
