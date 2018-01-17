@@ -2,33 +2,37 @@
 #include <iostream>
 
 void CGamerules::parseMessages() {
-    while(true) {
-        auto messages = getMessages();
-        for(auto msg : messages) {
-            StringReader reader(msg);
-            PacketType packetId = (PacketType)reader.getBinaryNumber(1);
-            switch(packetId) {
-                case PacketType::JOIN_RESPONSE:
-                    parseJoinResponse(reader);
-                    break;
-                case PacketType::LOBBY_STATUS:
-                    parseLobbyStatus(reader);
-                    break;
-                case PacketType::GAME_START:
-                    parseGameStart(reader);
-                    break;
-                case PacketType::MAP_UPDATE:
-                    parseMapUpdate(reader);
-                    break;
-                case PacketType::OBJECTS:
-                    parseObjects(reader);
-                    break;
-                case PacketType::GAME_OVER:
-                    parseGameOver(reader);
-                    break;
-                default:
-                    break;
-            }
+    if(connection == nullptr) {
+        toConnectionErrorState();
+        return;
+    }
+
+    auto messages = getMessages();
+    for(auto msg : messages) {
+        StringReader reader(msg);
+        PacketType packetId = (PacketType)reader.getBinaryNumber(1);
+        std::cout << "Packet: " << packetId << std::endl;
+        switch(packetId) {
+            case PacketType::JOIN_RESPONSE:
+                parseJoinResponse(reader);
+                break;
+            case PacketType::LOBBY_STATUS:
+                parseLobbyStatus(reader);
+                break;
+            case PacketType::GAME_START:
+                parseGameStart(reader);
+                break;
+            case PacketType::MAP_UPDATE:
+                parseMapUpdate(reader);
+                break;
+            case PacketType::OBJECTS:
+                parseObjects(reader);
+                break;
+            case PacketType::GAME_OVER:
+                parseGameOver(reader);
+                break;
+            default:
+                break;
         }
     }
 }
@@ -41,28 +45,28 @@ void CGamerules::sendJoinRequest() {
     std::string message;
     message += (char)PacketType::JOIN_REQUEST;
     message += playerName.substr(0,23);
-    sendMessage(message);
+    sendMessage(connection,message);
 }
 
 void CGamerules::sendKeepAlive() {
     std::string message;
     message += (char)PacketType::KEEP_ALIVE;
     message += (char)myClientId;
-    sendMessage(message);
+    sendMessage(connection,message);
 }
 
 void CGamerules::sendReady() {
     std::string message;
     message += (char)PacketType::READY;
     message += (char)myClientId;
-    sendMessage(message);
+    sendMessage(connection,message);
 }
 
 void CGamerules::sendDisconnect() {
     std::string message;
     message += (char)PacketType::DISCONNECT;
     message += (char)myClientId;
-    sendMessage(message);
+    sendMessage(connection,message);
 }
 
 void CGamerules::sendPlayerInput(short inputState) {
@@ -70,7 +74,7 @@ void CGamerules::sendPlayerInput(short inputState) {
     message += (char)PacketType::PLAYER_INPUT;
     message += (char)myClientId;
     message += from2ByteIntegerToString((int)inputState);
-    sendMessage(message);
+    sendMessage(connection,message);
 }
 
 void CGamerules::parseJoinResponse(StringReader& reader) {
@@ -78,6 +82,7 @@ void CGamerules::parseJoinResponse(StringReader& reader) {
         auto code = reader.getBinaryNumber(1);
         switch(code) {
             case 0:
+                std::cout << "LOBBY state" << std::endl;
                 state = GameState::LOBBY;
                 myClientId = (int)reader.getBinaryNumber(1);
                 lastReceivedMessage = getCurrentTime();
@@ -116,7 +121,7 @@ void CGamerules::parseLobbyStatus(StringReader& reader) {
 
 void CGamerules::parseGameStart(StringReader& reader) {
     if(state == GameState::LOBBY) {
-        std::cout << "parseGameStart started" << std::endl;
+        std::cout << "INIT state" << std::endl;
         state = GameState::INIT;
         int playerCount = reader.getBinaryNumber(1);
         std::cout << "reading " << playerCount << " players" << std::endl;
@@ -151,6 +156,7 @@ void CGamerules::parseGameStart(StringReader& reader) {
 
 void CGamerules::parseMapUpdate(StringReader& reader) {
     if(state == GameState::INIT) {
+        std::cout << "GAME state" << std::endl;
         state = GameState::GAME;
     }
     if(state == GameState::GAME) {
@@ -169,6 +175,7 @@ void CGamerules::parseMapUpdate(StringReader& reader) {
 
 void CGamerules::parseObjects(StringReader& reader) {
     if(state == GameState::INIT) {
+        std::cout << "GAME state" << std::endl;
         state = GameState::GAME;
     }
     if(state == GameState::GAME) {
@@ -239,7 +246,7 @@ void CGamerules::parseObjects(StringReader& reader) {
 
 void CGamerules::parseGameOver(StringReader& reader) {
     state = GameState::END;
-    std::cout << "Game over" << std::endl;
+    std::cout << "END" << std::endl;
     //read winners
 }
 
@@ -252,13 +259,4 @@ std::vector<std::string> Gamerules::getMessages() {
         j_node = j_node->next;
     }
     return connection_messages;
-}
-
-void Gamerules::sendMessage(std::string message) {
-    Msg msg;
-    msg.buffer = new char[message.size() + 1];
-    strcpy(msg.buffer, message.c_str());
-    msg.buffer_length = message.size();
-    sendConnection(connection,msg);
-    delete [] msg.buffer;
 }

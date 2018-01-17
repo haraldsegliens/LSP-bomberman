@@ -41,6 +41,9 @@ void VolatileEntitiesManager::deleteEntity(VolatileEntity* entity) {
 
 VolatileEntity* VolatileEntitiesManager::createFire(sf::Vector2<int> pos) {
     VolatileEntity* entity = get(pos);
+    if(entity->type != VolatileEntityType::EMPTY) {
+        deleteEntity(entity);
+    }
     entity->type = VolatileEntityType::FIRE;
     entity->event = addEvent(entity,gamerules->getCurrentTime() + sf::seconds(FIRE_DURATION));
     return entity;
@@ -48,7 +51,7 @@ VolatileEntity* VolatileEntitiesManager::createFire(sf::Vector2<int> pos) {
 
 VolatileEntity* VolatileEntitiesManager::createPowerup(sf::Vector2<int> pos, Powerup powerupType) {
     VolatileEntity* entity = get(pos);
-    entity->type = VolatileEntityType::FIRE;
+    entity->type = VolatileEntityType::POWERUP;
     entity->powerupType = powerupType;
     entity->event = addEvent(entity,gamerules->getCurrentTime() + sf::seconds(POWERUP_ALIVE_DURATION));
     return entity;

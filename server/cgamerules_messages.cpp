@@ -1,4 +1,5 @@
 #include "../shared/gamerules.hpp"
+#include <iostream>
 
 void Gamerules::parseMessages() {
     std::map<Connection*,std::vector<std::string>> messages = getMessages();
@@ -6,6 +7,7 @@ void Gamerules::parseMessages() {
         for(std::string msg : pair.second) {
             StringReader reader(msg);
             PacketType packetId = (PacketType)reader.getBinaryNumber(1);
+            std::cout << "Packet: " << packetId << std::endl;
             switch(packetId) {
                 case PacketType::JOIN_REQUEST:
                     parseJoinRequest(reader,pair.first);
@@ -165,8 +167,9 @@ void Gamerules::parseJoinRequest(StringReader& reader,Connection* con) {
         if(players.size() < 4) {
             std::string name = reader.get();
             int id = findFreePlayerId();
-            Player player(id,name,sf::Vector2f(world->getSpawnPoint(id)),con);
+            Player player(id,name,sf::Vector2f(world->getSpawnPoint(id)),con,this);
             players.push_back(player);
+            sendJoinResponse(id,con);
         } else {
             sendErrorJoinResponse(2,con);
         }
@@ -218,15 +221,6 @@ void Gamerules::parseDisconnect(StringReader& reader) {
             return;
         }
     }
-}
-
-void Gamerules::sendMessage(Connection* con, std::string message) {
-    Msg msg;
-    msg.buffer = new char[message.size() + 1];
-    strcpy(msg.buffer, message.c_str());
-    msg.buffer_length = message.size();
-    sendConnection(con,msg);
-    delete [] msg.buffer;
 }
 
 void Gamerules::sendMessageForAllPlayers(const std::string& message) {

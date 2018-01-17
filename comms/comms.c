@@ -7,20 +7,35 @@
 
 #define MAX_MESSAGE 10000
 
+/*void printEscaped(char* string, int len) {
+    int i = 0;
+    for(i = 0; i < len; i++) {
+        if(string[i] == '\0') {
+            printf("\\0");
+        } else if(string[i] == '\n') {
+            printf("\\n");
+        } else {
+            printf("%c",string[i]);
+        }
+    }
+}*/
+
 void* handleRecv(void* params) {
     Connection* con = (Connection*)params;
     char buffer[MAX_MESSAGE];
     while(1) {
         int len = recv(con->socket, buffer, MAX_MESSAGE, 0);
         if (len < 0) {
-            printf("ignored recv error packet\n");
+            /*printf("ignored recv error packet\n");*/
             continue;
         } else if(len == 0) {
             freeConnection(con);
             return NULL;
         }
 
-        printf("received %d bytes from %s:%d %.10s...\n", len, con->peerAddr, con->peerPort, buffer);
+        /*printf("received %d bytes from %s:%d ", len, con->peerAddr, con->peerPort);
+        printEscaped(buffer,len);
+        printf("\n");*/
 
         Msg message;
         message.buffer = malloc(len+1);
@@ -40,7 +55,10 @@ void* handleSend(void* params) {
             continue;
         }
         send(con->socket,message.buffer, message.buffer_length,0);
-        printf("sent %ld bytes from %s:%d %.10s...\n", message.buffer_length, con->peerAddr, con->peerPort, message.buffer);
+        /*printf("sent %ld bytes from %s:%d ", message.buffer_length, con->peerAddr, con->peerPort);
+        printEscaped(message.buffer,message.buffer_length);
+        printf("\n");*/
+        free(message.buffer);
     }
     return NULL;
 }
@@ -55,7 +73,7 @@ Connection* newServerConnection(int socket,char* addr, int port,ConList* conList
     con->peerPort = port;
     pthread_create(&con->threadRecv, NULL, handleRecv, (void *) con);
     pthread_create(&con->threadSend, NULL, handleSend, (void *) con);
-    printf("%s:%d connected\n",con->peerAddr,con->peerPort);
+    /*printf("%s:%d connected\n",con->peerAddr,con->peerPort);*/
     return con;
 }
 
@@ -77,11 +95,18 @@ Connection* newClientConnection(char* addr, int port) {
     }
     pthread_create(&con->threadRecv, NULL, handleRecv, (void *) con);
     pthread_create(&con->threadSend, NULL, handleSend, (void *) con);
-    printf("connected to %s:%d\n",con->peerAddr,con->peerPort);
+    /*printf("connected to %s:%d\n",con->peerAddr,con->peerPort);*/
     return con;
 }
 
 void sendConnection(Connection* con, Msg message) {
+    /*make a copy of the message*/
+    char* temp = (char*)malloc(message.buffer_length);
+    memcpy(temp,message.buffer,message.buffer_length);
+    message.buffer = temp;
+    if(con == NULL) {
+        perror("sendConnection failed: con null");
+    }
     enqueueMsgQueue(con->sendMessages,message);
 }
 
@@ -90,15 +115,15 @@ MsgQueue* getReceivedMessages(Connection* con) {
 }
 
 void freeConnection(Connection* con) {
+    pthread_cancel(con->threadSend);
+    pthread_cancel(con->threadRecv);
     if(con->conList != NULL) {
         removeConList(con->conList,con);
     }
-    pthread_cancel(con->threadSend);
-    pthread_cancel(con->threadRecv);
     freeMsgQueue(con->recvMessages);
     freeMsgQueue(con->sendMessages);
     shutdown(con->socket,2);
-    printf("disconnected from %s:%d\n", con->peerAddr, con->peerPort);
+    /*printf("disconnected from %s:%d\n", con->peerAddr, con->peerPort);*/
     free(con);
 }
 
@@ -175,7 +200,6 @@ void* handleAccept(void* params) {
         socklen_t addrSize = sizeof(addr);
         int clientFd = accept(listener->socket, (struct sockaddr *) &addr, &addrSize);
         if (clientFd == -1) {
-            printf("ignored accept error\n");
             continue;
         }
 

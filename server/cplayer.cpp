@@ -1,23 +1,25 @@
 #include "../shared/player.hpp"
 #include <math.h>
+#include <iostream>
 
 Player::Player(int _id, 
                std::string _name, 
                sf::Vector2<float> _position,
-               Connection* _con) : id(_id), name(_name),
-                                               position(_position),
+               Connection* _con,
+               Gamerules* gamerules) : id(_id), name(_name), position(_position),
                                                direction(sf::Vector2<int>(1,0)), 
-                                               powerup(Powerup::NONE),
-                                               power(1), speed(1),
-                                               maxDynamiteCount(1),
+                                               powerup(Powerup::NONE),power(1), 
+                                               speed(1),maxDynamiteCount(1),
                                                playerConnection(_con),
-                                               playerInput(0),
+                                               lastKeepAlive(gamerules->getCurrentTime()),
+                                               ready(false),playerInput(0),
                                                lastProcessedPlayerInput(0) {}
 
 Player::~Player() {}
 
 void Player::updateKeepAlive(Gamerules* gamerules) {
     if((gamerules->getCurrentTime() - lastKeepAlive).asSeconds() > TIMEOUT_DURATION) {
+        std::cout << "Player not responding with KEEPALIVE(name = " << name << ")" << std::endl;
         destroy = true;
     }
 }
@@ -39,7 +41,7 @@ void Player::handleSurroundings(Gamerules* gamerules, SurroundingInfo& info) {
         dead = true;
         return;
     }
-    VolatileEntity* powerupEntity = info.findVolatileEntity(VolatileEntityType::FIRE);
+    VolatileEntity* powerupEntity = info.findVolatileEntity(VolatileEntityType::POWERUP);
     if(powerupEntity != nullptr) {
         powerup = powerupEntity->powerupType;
         endTemporaryPowerup = gamerules->getCurrentTime() + sf::seconds(POWERUP_DURATION);
@@ -81,7 +83,7 @@ void Player::handlePlayerInput(Gamerules* gamerules, SurroundingInfo& info) {
     }
 
     if(isOneTimePressed(PlayerInputBits::DETONATE_REMOTELY)) {
-        if(powerup == Powerup::DYNAMITE_KICK) {
+        if(powerup == Powerup::REMOTE_DETONATOR) {
             for(Dynamite* dynamite : currentDynamites) {
                 dynamite->explode(gamerules);
             }
