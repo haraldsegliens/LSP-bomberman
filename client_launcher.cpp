@@ -1,36 +1,25 @@
 #include <iostream>
 #include <string>
+#include <stdlib.h>
 
 #include "shared/gamerules.hpp"
 
-int main() {
+int main(int argc, char* argv[]) {
     std::cout << "Bomberman client launcher console application" << std::endl;
-    std::string addr;
-    int port;
-    std::string name;
-    std::cout << "Enter remote server address: ";
-    std::cin >> addr;
-    std::cout << "Enter remote server port: ";
-    std::cin >> port;
-    std::cout << "Enter name: ";
-    std::cin >> name;
-    
-    Gamerules gamerules(addr,port,name);
+    Gamerules gamerules(std::string(argv[1]),atoi(argv[2]),std::string(argv[3]));
 
     while(gamerules.getState() == GameState::NOT_CONNECTED) {}
 
-    if(gamerules.getState() == GameState::CONNECTION_ERROR ) {
+    if(gamerules.getState() == GameState::CONNECTION_ERROR) {
         std::cout << "Connection error" << std::endl;
-        std::cin.get();
         return 1;
     }
-    std::cin.get();
     gamerules.ready();
-    std::cin.get();
-    if(gamerules.getState() == GameState::LOBBY || 
-       gamerules.getState() == GameState::INIT || 
-       gamerules.getState() == GameState::GAME) {
-        gamerules.disconnectClient();
+    while(gamerules.getState() != GameState::END && gamerules.getState() != GameState::CONNECTION_ERROR) {}
+
+    if(gamerules.getState() == GameState::CONNECTION_ERROR) {
+        std::cout << "Connection error" << std::endl;
+        return 1;
     }
     
     return 0;

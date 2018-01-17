@@ -36,15 +36,22 @@ void Dynamite::explode(Gamerules* gamerules) {
     sf::Vector2i center(position);
 
     gamerules->getWorld()->changeCell(center,WorldCell::GROUND,gamerules);
+    gamerules->getVolatileEntitiesManager()->createFire(center);
     for(auto& dir : dirs) {
         sf::Vector2i pos(center + dir);
         unsigned int i = 1;
         while( i < power && gamerules->getWorld()->getCell(pos) == WorldCell::GROUND) {
             pos += dir;
+            gamerules->getVolatileEntitiesManager()->createFire(pos);
             i++;
         }
         if(gamerules->getWorld()->getCell(pos) == WorldCell::BOX) {
             gamerules->getWorld()->changeCell(pos,WorldCell::GROUND,gamerules);
+        }
+
+        if(gamerules->getWorld()->getCell(pos) == WorldCell::GROUND && 
+           gamerules->getVolatileEntitiesManager()->get(pos)->type == VolatileEntityType::EMPTY) {
+             gamerules->getVolatileEntitiesManager()->createFire(pos);
         }
     }
     destroy = true;

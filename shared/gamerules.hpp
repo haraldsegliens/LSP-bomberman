@@ -88,6 +88,7 @@ class Gamerules {
     int getNumberFromDirection(sf::Vector2<int> dir);
 
     std::string from2ByteIntegerToString(int i);
+    void sendMessage(Connection* con, std::string message);
 
 #ifdef CLIENT
     Connection* connection;
@@ -106,7 +107,6 @@ class Gamerules {
     void toConnectionErrorState();
 
     std::vector<std::string> getMessages();
-    void sendMessage(std::string message);
 
     void sendJoinRequest();
     void sendKeepAlive();
@@ -125,10 +125,10 @@ class Gamerules {
 #else
     Listener* listener;
     sf::Time initStart;
-
+    sf::Time lastLobbyStatus;
+    
     std::map<Connection*,std::vector<std::string>> getMessages();
     void sendMessageForAllPlayers(const std::string& message);
-    void sendMessage(Connection* con, std::string message);
 
     void sendLobbyStatus();
     void sendGameStart();

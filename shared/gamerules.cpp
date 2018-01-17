@@ -1,4 +1,5 @@
 #include "gamerules.hpp"
+#include <iostream>
 
 void Gamerules::handleMainLoop() {
     while(mainLoopOn) {
@@ -92,4 +93,13 @@ std::string Gamerules::from2ByteIntegerToString(int i) {
     a += (char)(i & 0xff);
     a += (char)((i >> 8) & 0xff);
     return a;
+}
+
+void Gamerules::sendMessage(Connection* con, std::string message) {
+    char* message_dup = strndup(message.c_str(),message.size());
+    Msg msg;
+    msg.buffer = message_dup;
+    msg.buffer_length = message.size();
+    sendConnection(con,msg);
+    free(message_dup);
 }

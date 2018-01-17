@@ -69,7 +69,7 @@ class Player {
 #endif
 public:
 #ifdef SERVER
-    Player(int _id,std::string _name,sf::Vector2<float> _position,Connection* _con);
+    Player(int _id,std::string _name,sf::Vector2<float> _position,Connection* _con, Gamerules* gamerules);
 #else
     Player(int _id,std::string _name,sf::Vector2<float> _position,sf::Vector2<int> _direction, int order);
 #endif

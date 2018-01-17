@@ -8,6 +8,8 @@ int main() {
     std::cout << "Enter server port: ";
     std::cin >> port;
     Gamerules gamerules(port);
-    std::cin.get();
+    int i;
+    std::cin >> i;
+    std::cout << i << std::endl;
     return 0;
 }

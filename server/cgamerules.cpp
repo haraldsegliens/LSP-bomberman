@@ -1,6 +1,7 @@
 #include "../shared/gamerules.hpp"
 #include "../shared/string_reader.hpp"
 #include <math.h>
+#include <iostream>
 
 
 Gamerules::Gamerules(int port) : mainLoopOn(true),
@@ -8,16 +9,23 @@ Gamerules::Gamerules(int port) : mainLoopOn(true),
                                  volatileEntitiesManager(new VolatileEntitiesManager()) {
     listener = createListener(port,10);
     cleanup();
-    mainLoop = std::thread(&Gamerules::handleMainLoop, this);
+    if(listener != nullptr) {
+        mainLoop = std::thread(&Gamerules::handleMainLoop, this);
+    }
 }
 
 Gamerules::~Gamerules() {
-    mainLoopOn = false;
-    mainLoop.join();
-    freeListener(listener);
+    if(mainLoop.joinable()) {
+        mainLoopOn = false;
+        mainLoop.join();
+    }
+    if(listener != nullptr) {
+        freeListener(listener);
+    }
 }
 
 void Gamerules::cleanup() {
+    std::cout << "LOBBY" << std::endl;
     state = GameState::LOBBY;
     world->cleanup();
     volatileEntitiesManager->cleanup();
@@ -26,17 +34,23 @@ void Gamerules::cleanup() {
 }
 
 void Gamerules::handleLobbyState() {
+    if(players.size() == 0) {
+        return;
+    }
+
     for(Player& player : players) {
         player.updateKeepAlive(this);
     }
 
     cleanupPlayers();
-    cleanupDynamites();
-
-    sendLobbyStatus();
+    if((lastLobbyStatus - getCurrentTime()).asSeconds() > 1.0f) {
+        sendLobbyStatus();
+        lastLobbyStatus = getCurrentTime();
+    }
     unsigned int readyCount = countReady();
-    if(players.size() >= 2 && readyCount == players.size()) {
+    if(players.size() >= MINIMUM_PLAYERS && readyCount == players.size()) {
         sendGameStart();
+        std::cout << "INIT" << std::endl;
         state = GameState::INIT;
         initStart = getCurrentTime();
         for(Player& player : players) {
@@ -59,12 +73,13 @@ void Gamerules::handleInitState() {
             }
         }
 
-        if(players.size() < 2) {
+        if(players.size() < MINIMUM_PLAYERS) {
             sendGameOver();
             cleanup();
         } else {
-           state = GameState::GAME;
-           endTime = getCurrentTime() + sf::seconds(ROUND_TIME);
+            std::cout << "GAME" << std::endl;
+            state = GameState::GAME;
+            endTime = getCurrentTime() + sf::seconds(ROUND_TIME);
         }
     }
 }
@@ -79,6 +94,9 @@ void Gamerules::handleGameState() {
     for(Player& player : players) {
         player.update(this);
     }
+
+    cleanupPlayers();
+    cleanupDynamites();
 
     sendMapUpdate();
     sendObjects();

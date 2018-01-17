@@ -6,14 +6,19 @@ CGamerules::CGamerules(std::string addr, int port, std::string _playerName) : ma
                                                                               volatileEntitiesManager(new VolatileEntitiesManager()),
                                                                               playerName(_playerName) {
     cleanup();
+    std::cout << "NOT_CONNECTED" << std::endl;
     state = GameState::NOT_CONNECTED;
     m_addr = new char[addr.size() + 1];
     strcpy(m_addr,addr.c_str());
     connection = newClientConnection(m_addr,port);
+    if(connection == nullptr) {
+        toConnectionErrorState();
+        return;
+    }
     sendJoinRequest();
 
     if(!dynamiteTexture.loadFromFile("materials/dynamite.png")) {
-        std::cout << "Error loading player texture: " << "materials/dynamite.png" << std::endl;
+        //std::cout << "Error loading player texture: " << "materials/dynamite.png" << std::endl;
     }
 
     mainLoop = std::thread(&CGamerules::handleMainLoop, this);
@@ -21,8 +26,12 @@ CGamerules::CGamerules(std::string addr, int port, std::string _playerName) : ma
 
 CGamerules::~CGamerules() {
     mainLoopOn = false;
-    mainLoop.join();
-    freeConnection(connection);
+    if(mainLoop.joinable()){
+        mainLoop.join();
+    }
+    if(connection != nullptr) {
+        freeConnection(connection);
+    }
     delete [] m_addr;
 }
 
@@ -78,8 +87,10 @@ void CGamerules::disconnectClient() {
 void CGamerules::toConnectionErrorState() {
     state = GameState::CONNECTION_ERROR;
     screen.reset(nullptr);
-    freeConnection(connection);
-    connection = nullptr;
+    if(connection != nullptr) {
+        freeConnection(connection);
+        connection = nullptr;
+    }
     cleanup();
 }
 
