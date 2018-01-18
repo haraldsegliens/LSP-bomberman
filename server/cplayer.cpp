@@ -46,8 +46,24 @@ void Player::handleSurroundings(Gamerules* gamerules, SurroundingInfo& info) {
     }
     VolatileEntity* powerupEntity = info.findVolatileEntity(VolatileEntityType::POWERUP);
     if(powerupEntity != nullptr) {
-        powerup = powerupEntity->powerupType;
-        endTemporaryPowerup = gamerules->getCurrentTime() + sf::seconds(POWERUP_DURATION);
+        switch(powerupEntity->powerupType) {
+            case Powerup::DYNAMITE_POWER:
+                power++;
+                break;
+            case Powerup::RUNNING_SPEED:
+                speed++;
+                break;
+            case Powerup::DYNAMITE_COUNT:
+                maxDynamiteCount++;
+                break;
+            case Powerup::REMOTE_DETONATOR:
+            case Powerup::DYNAMITE_KICK:
+                powerup = powerupEntity->powerupType;
+                endTemporaryPowerup = gamerules->getCurrentTime() + sf::seconds(POWERUP_DURATION);
+                break;
+            default:
+                break;
+        }
         gamerules->getVolatileEntitiesManager()->deleteEntity(powerupEntity);
         info.entities.erase(std::find(
             info.entities.begin(), info.entities.end(), powerupEntity
@@ -78,11 +94,14 @@ void Player::handlePlayerInput(Gamerules* gamerules, SurroundingInfo& info) {
     if(isOneTimePressed(PlayerInputBits::PLANT_BOMB) && 
        currentDynamites.size() < maxDynamiteCount && info.entities.size() == 0 &&
        info.dynamites.size() == 0) {
-        info.dynamites.push_back(gamerules->createDynamite(
-            sf::Vector2f(floor(position.x)+0.5f,floor(position.y)+0.5f),power,this)
+        Dynamite* dynamite = gamerules->createDynamite(
+            sf::Vector2f(floor(position.x)+0.5f,floor(position.y)+0.5f),
+            power,this
         );
+        currentDynamites.push_back(dynamite);
+        info.dynamites.push_back(dynamite);
     }
-    /*
+    
     if(isOneTimePressed(PlayerInputBits::DETONATE_REMOTELY)) {
         if(powerup == Powerup::REMOTE_DETONATOR) {
             for(Dynamite* dynamite : currentDynamites) {
@@ -90,7 +109,7 @@ void Player::handlePlayerInput(Gamerules* gamerules, SurroundingInfo& info) {
             }
             currentDynamites.clear();
         }
-    }*/
+    }
 }
 
 void Player::movePlayer(Gamerules* gamerules) {
@@ -108,9 +127,19 @@ void Player::movePlayer(Gamerules* gamerules) {
             return;
         }
     }
-    sf::Vector2f targetCell = cell_position + sf::Vector2f(direction);
-    SurroundingInfo targetInfo = gamerules->scanSurrounding(targetCell,PLAYER_CHECKBOX_SIZE_RELATIVE);
-    if(!targetInfo.containsWorldCell(WorldCell::GROUND)) {
+    sf::Vector2f targetPosition = position;
+    if(direction.x != 0) {
+        //horizontāli
+        targetPosition.x += getUnitSpeed() * gamerules->getDeltaTime().asSeconds() * direction.x;
+        targetPosition.y = cell_position.y;
+    } else {
+        //vertikāli
+        targetPosition.x = cell_position.x;
+        targetPosition.y += getUnitSpeed() * gamerules->getDeltaTime().asSeconds() * direction.y;
+    }
+    SurroundingInfo currentInfo = gamerules->scanSurrounding(position,PLAYER_CHECKBOX_SIZE_RELATIVE);
+    SurroundingInfo targetInfo = gamerules->scanSurrounding(targetPosition,PLAYER_CHECKBOX_SIZE_RELATIVE);
+    if(targetInfo.containsWorldCell(WorldCell::WALL) || targetInfo.containsWorldCell(WorldCell::BOX)) {
         return;
     }
 
@@ -120,20 +149,14 @@ void Player::movePlayer(Gamerules* gamerules) {
     }
 
     //handling dynamite kick powerup
-    /*if(powerup == Powerup::DYNAMITE_KICK && targetInfo.dynamites.size() == 1) {
-        targetInfo.dynamites[0]->kick(direction);
-    } else {
-        return;
-    }*/
-    if(direction.x != 0) {
-        //horizontāli
-        position.x += getUnitSpeed() * gamerules->getDeltaTime().asSeconds() * direction.x;
-        position.y = cell_position.y;
-    } else {
-        //vertikāli
-        position.x = cell_position.x;
-        position.y += getUnitSpeed() * gamerules->getDeltaTime().asSeconds() * direction.y;
+    if(targetInfo.dynamites.size() == 1) {
+        if(powerup == Powerup::DYNAMITE_KICK && currentInfo.dynamites.size() == 0) {
+            targetInfo.dynamites[0]->kick(direction);
+        } else if(currentInfo.dynamites.size() == 0) {
+            return;
+        }
     }
+    position = targetPosition;
 }
 
 void Player::removeDynamite(Dynamite* dynamite) {

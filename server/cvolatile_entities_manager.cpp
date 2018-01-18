@@ -46,7 +46,7 @@ void VolatileEntitiesManager::deleteEntity(VolatileEntity* entity) {
 }
 
 VolatileEntity* VolatileEntitiesManager::createFire(sf::Vector2<int> pos, Gamerules* gamerules) {
-    std::cout << "Create fire" << std::endl;
+    std::cout << "Create fire " << pos.x << " " << pos.y << std::endl;
     VolatileEntity* entity = _get(pos);
     if(entity->type != VolatileEntityType::EMPTY) {
         deleteEntity(entity);

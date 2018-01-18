@@ -21,6 +21,8 @@ class Dynamite {
     bool destroy;
     Player* owner;
     sf::Time explosionTime;
+
+    bool move(sf::Vector2f targetPosition, Gamerules* gamerules);
 #else
     sf::Texture* dynamiteTexture;
 #endif
