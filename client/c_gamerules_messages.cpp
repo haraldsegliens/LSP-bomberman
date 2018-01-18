@@ -218,6 +218,11 @@ void CGamerules::parseObjects(StringReader& reader) {
             playerIds.push_back(_id);
             Player* player = getPlayer(_id);
 
+            if(player == nullptr) {
+                reader.get(10);
+                continue;
+            }
+
             bool _dead = reader.getBinaryNumber(1) == 1;
             player->setDead(true);
 

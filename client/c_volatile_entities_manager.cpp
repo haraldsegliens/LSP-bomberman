@@ -53,9 +53,30 @@ void CVolatileEntitiesManager::draw(sf::RenderWindow& window) {
             }
             int i = -1;
             if(entity->type == VolatileEntityType::FIRE) {
-                i = 0;
+                VolatileEntity* up = _get(sf::Vector2<int>(x,y-1));
+                VolatileEntity* left = _get(sf::Vector2<int>(x-1,y));
+                VolatileEntity* right = _get(sf::Vector2<int>(x+1,y));
+                VolatileEntity* down = _get(sf::Vector2<int>(x,y+1));
+                if((up->isFire() && left->isFire()) ||
+                    (up->isFire() && right->isFire()) ||
+                    (down->isFire() && right->isFire()) ||
+                    (down->isFire() && left->isFire())){
+                    i = 1;
+                } else if(left->isFire() && right->isFire()) {
+                    i = 5;
+                } else if(up->isFire() && down->isFire()) {
+                    i = 6;
+                } else if(right->isFire()) {
+                    i = 0;
+                } else if(left->isFire()) {
+                    i = 2;
+                } else if(up->isFire()) {
+                    i = 3;
+                } else if(down->isFire()) {
+                    i = 4;
+                }
             } else if(entity->type == VolatileEntityType::POWERUP) {
-                i = 1 + (int)entity->powerupType;
+                i = 7 + (int)entity->powerupType;
             } else {
                 continue;
             }

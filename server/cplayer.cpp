@@ -41,6 +41,7 @@ void Player::handleSurroundings(Gamerules* gamerules, SurroundingInfo& info) {
        info.containsWorldCell(WorldCell::BOX) ||
        info.findVolatileEntity(VolatileEntityType::FIRE) != nullptr) {
         dead = true;
+        std::cout << "DEAD" << std::endl;
         return;
     }
     VolatileEntity* powerupEntity = info.findVolatileEntity(VolatileEntityType::POWERUP);
@@ -74,14 +75,12 @@ void Player::handlePlayerInput(Gamerules* gamerules, SurroundingInfo& info) {
         movePlayer(gamerules);
     }
 
-    if(isOneTimePressed(PlayerInputBits::PLANT_BOMB)) {
-        sf::Vector2<int> freeGround = info.findWorldCell(WorldCell::GROUND);
-        if(currentDynamites.size() < maxDynamiteCount && 
-            info.entities.size() == 0 && info.dynamites.size() == 0 && 
-            freeGround.x != -1) {
-            //create dynamite
-            info.dynamites.push_back(gamerules->createDynamite(sf::Vector2f(freeGround),power,this));
-        }
+    if(isOneTimePressed(PlayerInputBits::PLANT_BOMB) && 
+       currentDynamites.size() < maxDynamiteCount && info.entities.size() == 0 &&
+       info.dynamites.size() == 0) {
+        info.dynamites.push_back(gamerules->createDynamite(
+            sf::Vector2f(floor(position.x)+0.5f,floor(position.y)+0.5f),power,this)
+        );
     }
     /*
     if(isOneTimePressed(PlayerInputBits::DETONATE_REMOTELY)) {

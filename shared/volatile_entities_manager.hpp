@@ -32,6 +32,10 @@ struct VolatileEntity {
     VolatileEntityType type;
     Powerup powerupType;
 
+    bool isFire() {
+        return type == VolatileEntityType::FIRE;
+    }
+
 #ifdef SERVER
     std::list<VolatileEntityEvent>::iterator event;
 #endif
