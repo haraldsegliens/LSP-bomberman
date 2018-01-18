@@ -104,7 +104,7 @@ void CGamerules::toConnectionErrorState() {
 
 void CGamerules::draw(sf::RenderWindow& window) {
     world->draw(window);
-    //volatileEntitiesManager->draw(window);
+    volatileEntitiesManager->draw(window);
     for(Dynamite& dynamite : dynamites) {
         dynamite.draw(window);
     }

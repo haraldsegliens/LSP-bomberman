@@ -7,32 +7,40 @@ CVolatileEntitiesManager::CVolatileEntitiesManager() {
     if(!tileMap.loadFromFile("materials/tile.png")) {
         std::cout << "Error loading player texture: " << "materials/tile.png" << std::endl;
     }
+    volatileEntitiesMap = nullptr;
 }
 
-CVolatileEntitiesManager::~CVolatileEntitiesManager() {}
+CVolatileEntitiesManager::~CVolatileEntitiesManager() {
+    if(volatileEntitiesMap != nullptr) {
+        delete [] volatileEntitiesMap;
+    }
+}
 
 void CVolatileEntitiesManager::cleanup() {
-    volatileEntitiesMap.clear();
+    if(volatileEntitiesMap != nullptr) {
+        clear();
+    }
 }
 
 void CVolatileEntitiesManager::clear() {
-    for(VolatileEntity& entity : volatileEntitiesMap) {
-        entity.type = VolatileEntityType::EMPTY;
-        entity.powerupType = Powerup::NONE;
+    int i_max = width*height;
+    for(int i = 0; i < i_max;i++) {
+        VolatileEntity* entity = &volatileEntitiesMap[i];
+        entity->type = VolatileEntityType::EMPTY;
+        entity->powerupType = Powerup::NONE;
     }
 }
 
 void CVolatileEntitiesManager::load(Gamerules* gamerules) {
     cleanup();
-    volatileEntitiesMap.clear();
     width = gamerules->getWorld()->getWidth();
     height = gamerules->getWorld()->getHeight();
     int i_max = width*height;
+    volatileEntitiesMap = new VolatileEntity[i_max];
     for(int i = 0; i < i_max;i++) {
-        VolatileEntity entity;
-        entity.type = VolatileEntityType::EMPTY;
-        entity.powerupType = Powerup::NONE;
-        volatileEntitiesMap.push_back(entity);
+        VolatileEntity* entity = &volatileEntitiesMap[i];
+        entity->type = VolatileEntityType::EMPTY;
+        entity->powerupType = Powerup::NONE;
     }
 }
 

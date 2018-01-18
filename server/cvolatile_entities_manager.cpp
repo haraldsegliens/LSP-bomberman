@@ -1,6 +1,8 @@
 #include "../shared/volatile_entities_manager.hpp"
+#include <iostream>
 
 VolatileEntitiesManager::VolatileEntitiesManager() {
+    volatileEntitiesMap = nullptr;
     cleanup();
 }
 
@@ -8,26 +10,29 @@ VolatileEntitiesManager::~VolatileEntitiesManager() {}
 
 void VolatileEntitiesManager::load(Gamerules* gamerules) {
     cleanup();
-    volatileEntitiesMap.clear();
     width = gamerules->getWorld()->getWidth();
     height = gamerules->getWorld()->getHeight();
+    volatileEntitiesMap = new VolatileEntity[width*height];
     int i_max = width*height;
     for(int i = 0; i < i_max;i++) {
-        VolatileEntity entity;
-        entity.type = VolatileEntityType::EMPTY;
-        entity.powerupType = Powerup::NONE;
-        volatileEntitiesMap.push_back(entity);
+        VolatileEntity* entity = &volatileEntitiesMap[i];
+        entity->type = VolatileEntityType::EMPTY;
+        entity->powerupType = Powerup::NONE;
     }
 }
 
 void VolatileEntitiesManager::cleanup() {
-    volatileEntitiesMap.clear();
+    if(volatileEntitiesMap != nullptr) {
+        delete [] volatileEntitiesMap;
+        volatileEntitiesMap = nullptr;
+    }
     events.clear();
 }
 
 void VolatileEntitiesManager::update(Gamerules* gamerules) {
     auto it = events.begin();
     while(it != events.end() && it->time <= gamerules->getCurrentTime()) {
+        std::cout << "VolatileEntitiesManager erase" << std::endl;
         it->entity->type = VolatileEntityType::EMPTY;
         it->entity->powerupType = Powerup::NONE;
         it = events.erase(it);
@@ -41,6 +46,7 @@ void VolatileEntitiesManager::deleteEntity(VolatileEntity* entity) {
 }
 
 VolatileEntity* VolatileEntitiesManager::createFire(sf::Vector2<int> pos, Gamerules* gamerules) {
+    std::cout << "Create fire" << std::endl;
     VolatileEntity* entity = _get(pos);
     if(entity->type != VolatileEntityType::EMPTY) {
         deleteEntity(entity);

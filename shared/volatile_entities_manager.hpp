@@ -40,7 +40,7 @@ struct VolatileEntity {
 class VolatileEntitiesManager {
     int width;
     int height;
-    std::vector<VolatileEntity> volatileEntitiesMap;//tādā pašā kārtībā, kā World šūnas
+    VolatileEntity* volatileEntitiesMap;//tādā pašā kārtībā, kā World šūnas
 #ifdef CLIENT
     sf::Texture tileMap;
 #else

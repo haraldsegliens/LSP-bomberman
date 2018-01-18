@@ -110,9 +110,9 @@ void Gamerules::sendObjects() {
     }
     std::vector<sf::Vector2i> fireEntityPositions = volatileEntitiesManager->getAllPositionsWithType(VolatileEntityType::FIRE);
     message += (char)fireEntityPositions.size();
-    for(sf::Vector2i fireEntityPositions : fireEntityPositions) {
-        message += (char)fireEntityPositions.x;
-        message += (char)fireEntityPositions.y;
+    for(sf::Vector2i fireEntityPosition : fireEntityPositions) {
+        message += (char)fireEntityPosition.x;
+        message += (char)fireEntityPosition.y;
     }
 
     std::vector<sf::Vector2i> powerupEntityPositions = volatileEntitiesManager->getAllPositionsWithType(VolatileEntityType::POWERUP);
