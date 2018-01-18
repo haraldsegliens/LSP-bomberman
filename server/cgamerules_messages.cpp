@@ -202,7 +202,6 @@ void Gamerules::parsePlayerInput(StringReader& reader) {
         Player* player = getPlayer(player_id);
         if(player != nullptr) {
             player->setInputState(inputState);
-            std::cout << inputState << " ";
         }
     }
 }
