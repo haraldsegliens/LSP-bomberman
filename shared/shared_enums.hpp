@@ -1,7 +1,7 @@
 #ifndef SHARED_ENUMS_H
 #define SHARED_ENUMS_H
 
-#define MINIMUM_PLAYERS 1
+#define MINIMUM_PLAYERS 2
 
 #define FIRE_DURATION 2.0f
 #define TIMEOUT_DURATION 10.0f

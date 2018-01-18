@@ -108,7 +108,17 @@ void CGamerules::draw(sf::RenderWindow& window) {
     for(Dynamite& dynamite : dynamites) {
         dynamite.draw(window);
     }
-    for(Player& player : players) {
-        player.draw(window);
+    //insertion sort by player position.y
+    bool drawnPlayers[4] = {false,false,false,false};
+    for(unsigned int i = 0; i < players.size(); i++) {
+        int min_player_index = -1;
+        for(unsigned int j = 0; j < players.size(); j++) {
+            if((min_player_index == -1 || players[min_player_index].getPosition().y > players[j].getPosition().y) &&
+                !drawnPlayers[j]) {
+                min_player_index = j;
+            } 
+        }
+        players[min_player_index].draw(window);
+        drawnPlayers[min_player_index] = true;
     }
 }

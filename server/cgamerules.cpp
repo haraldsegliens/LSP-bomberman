@@ -114,8 +114,8 @@ void Gamerules::handleGameState() {
     }
 
     int alive = countAlive();
-    //if(alive <= 1) { 
-    if(alive == 0) {
+    if(alive <= 1) { 
+    //if(alive == 0) {
         sendGameOver();
         cleanup();
     }
