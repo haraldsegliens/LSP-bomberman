@@ -51,6 +51,7 @@ public:
     ~VolatileEntitiesManager();
     void load(Gamerules* _gamerules);
     VolatileEntity* get(sf::Vector2<int> pos);
+    VolatileEntity* _get(sf::Vector2<int> pos);
     void cleanup();
     std::vector<sf::Vector2i> getAllPositionsWithType(VolatileEntityType type);
 

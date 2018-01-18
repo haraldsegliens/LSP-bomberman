@@ -68,7 +68,7 @@ void CGamerules::sendDisconnect() {
     sendMessage(connection,message);
 }
 
-void CGamerules::sendPlayerInput(short inputState) {
+void CGamerules::sendPlayerInput(unsigned short inputState) {
     std::string message;
     message += (char)PacketType::PLAYER_INPUT;
     message += (char)myClientId;
@@ -198,14 +198,14 @@ void CGamerules::parseObjects(StringReader& reader) {
         for(int i = 0; i < fireCount; i++) {
             int _x = reader.getBinaryNumber(1);
             int _y = reader.getBinaryNumber(1);
-            volatileEntitiesManager->get(sf::Vector2<int>(_x,_y))->type = VolatileEntityType::FIRE;
+            volatileEntitiesManager->_get(sf::Vector2<int>(_x,_y))->type = VolatileEntityType::FIRE;
         }
         int powerupCount = reader.getBinaryNumber(1);
         for(int i = 0; i < powerupCount; i++) {
             int _x = reader.getBinaryNumber(1);
             int _y = reader.getBinaryNumber(1);
             Powerup _powerup = (Powerup)reader.getBinaryNumber(1);
-            VolatileEntity* entity = volatileEntitiesManager->get(sf::Vector2<int>(_x,_y));
+            VolatileEntity* entity = volatileEntitiesManager->_get(sf::Vector2<int>(_x,_y));
             entity->type = VolatileEntityType::POWERUP;
             entity->powerupType = _powerup;
         }

@@ -3,7 +3,8 @@
 Dynamite::Dynamite(sf::Vector2<float> _position, unsigned int _power,
                    Player* _owner, sf::Time _explosionTime) : position(_position),
                                                               power(_power),
-                                                              slideSpeed(0.0f), 
+                                                              slideSpeed(0.0f),
+                                                              destroy(false),
                                                               owner(_owner),
                                                               explosionTime(_explosionTime) {}
 
@@ -21,7 +22,7 @@ void Dynamite::update(Gamerules* gamerules) {
         slideSpeed = slideSpeed < 0.0f ? 0.0f : slideSpeed;
     }
 
-    if(explosionTime > gamerules->getCurrentTime()) {
+    if(explosionTime < gamerules->getCurrentTime()) {
         explode(gamerules);
     }
 }
@@ -35,7 +36,6 @@ void Dynamite::explode(Gamerules* gamerules) {
     };
     sf::Vector2i center(position);
 
-    gamerules->getWorld()->changeCell(center,WorldCell::GROUND,gamerules);
     gamerules->getVolatileEntitiesManager()->createFire(center, gamerules);
     for(auto& dir : dirs) {
         sf::Vector2i pos(center + dir);
@@ -50,7 +50,7 @@ void Dynamite::explode(Gamerules* gamerules) {
         }
 
         if(gamerules->getWorld()->getCell(pos) == WorldCell::GROUND && 
-           gamerules->getVolatileEntitiesManager()->get(pos)->type == VolatileEntityType::EMPTY) {
+           gamerules->getVolatileEntitiesManager()->get(pos) == nullptr) {
              gamerules->getVolatileEntitiesManager()->createFire(pos, gamerules);
         }
     }

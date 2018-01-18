@@ -48,6 +48,11 @@ void World::loadMap(std::vector<WorldCell>& _map,
 }
 
 void World::changeCell(sf::Vector2<int> pos, WorldCell value, Gamerules* gamerules) {
+    //dont change if the target is same
+    if(map[pos.x + pos.y * mapSize.x] == value) {
+        return;
+    }
+
     if(getCell(pos) == WorldCell::BOX && value == WorldCell::GROUND && (rand()%3) == 0) {
         gamerules->getVolatileEntitiesManager()->createPowerup(pos,(Powerup)(rand() % 5), gamerules);
     }

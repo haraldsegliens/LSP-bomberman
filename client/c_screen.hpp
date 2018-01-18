@@ -8,14 +8,16 @@ class CScreen;
 #include "../shared/gamerules.hpp"
 
 struct WindowEvents {
-    short inputState;
+    unsigned short inputState;
     bool windowClosed;
 };
 
 class CScreen {
     sf::RenderWindow window;
-
-    void bindActionToShort(sf::Event::KeyEvent keyPressed, short& event);
+    unsigned short inputState;
+    int getPlayerBitFromEvent(sf::Event::KeyEvent key);
+    void bindActionToShort(sf::Event::KeyEvent keyPressed, unsigned short& event);
+    void unbindActionToShort(sf::Event::KeyEvent keyPressed, unsigned short& event);
 public:
     CScreen();
     ~CScreen();

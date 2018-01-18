@@ -102,7 +102,7 @@ class Gamerules {
 
     sf::Time lastKeepAlive;
     sf::Time lastDraw;
-    short lastInputState;
+    unsigned short lastInputState;
 
     void toConnectionErrorState();
 
@@ -112,7 +112,7 @@ class Gamerules {
     void sendKeepAlive();
     void sendReady();
     void sendDisconnect();
-    void sendPlayerInput(short inputState);
+    void sendPlayerInput(unsigned short inputState);
 
     void parseJoinResponse(StringReader& reader);
     void parseLobbyStatus(StringReader& reader);

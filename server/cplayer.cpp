@@ -60,25 +60,21 @@ void Player::handlePlayerInput(Gamerules* gamerules, SurroundingInfo& info) {
         direction.x = 0;
         direction.y = -1;
         movePlayer(gamerules);
-        //std::cout << "UP" << std::endl;
     } else if(isPressed(PlayerInputBits::DOWN)) {
         direction.x = 0;
         direction.y = 1;
         movePlayer(gamerules);
-        //std::cout << "DOWN" << std::endl;
     } else if(isPressed(PlayerInputBits::LEFT)) {
         direction.x = -1;
         direction.y = 0;
         movePlayer(gamerules);
-        //std::cout << "LEFT" << std::endl;
     } else if(isPressed(PlayerInputBits::RIGHT)) {
         direction.x = 1;
         direction.y = 0;
         movePlayer(gamerules);
-        //std::cout << "RIGHT" << std::endl;
     }
 
-    /*if(isOneTimePressed(PlayerInputBits::PLANT_BOMB)) {
+    if(isOneTimePressed(PlayerInputBits::PLANT_BOMB)) {
         sf::Vector2<int> freeGround = info.findWorldCell(WorldCell::GROUND);
         if(currentDynamites.size() < maxDynamiteCount && 
             info.entities.size() == 0 && info.dynamites.size() == 0 && 
@@ -87,7 +83,7 @@ void Player::handlePlayerInput(Gamerules* gamerules, SurroundingInfo& info) {
             info.dynamites.push_back(gamerules->createDynamite(sf::Vector2f(freeGround),power,this));
         }
     }
-
+    /*
     if(isOneTimePressed(PlayerInputBits::DETONATE_REMOTELY)) {
         if(powerup == Powerup::REMOTE_DETONATOR) {
             for(Dynamite* dynamite : currentDynamites) {
@@ -142,7 +138,10 @@ void Player::movePlayer(Gamerules* gamerules) {
 }
 
 void Player::removeDynamite(Dynamite* dynamite) {
-    currentDynamites.erase(std::find(currentDynamites.begin(),currentDynamites.end(),dynamite));
+    auto it = std::find(currentDynamites.begin(),currentDynamites.end(),dynamite);
+    if(it != currentDynamites.end()) {
+        currentDynamites.erase(it);
+    }
 }
 
 sf::Vector2f Player::getPosition() {return position;}

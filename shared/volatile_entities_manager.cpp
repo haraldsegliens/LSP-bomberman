@@ -1,11 +1,15 @@
 #include "volatile_entities_manager.hpp"
 
+VolatileEntity* VolatileEntitiesManager::_get(sf::Vector2<int> pos) {
+    return &volatileEntitiesMap[pos.y * width + pos.x];
+}
+
 VolatileEntity* VolatileEntitiesManager::get(sf::Vector2<int> pos) {
-    VolatileEntity* entity = &volatileEntitiesMap[pos.y * width + pos.x];
+    VolatileEntity* entity = _get(pos);
     if(entity->type == VolatileEntityType::EMPTY) {
         return nullptr;
     } else {
-        return &volatileEntitiesMap[pos.y * width + pos.x];
+        return entity;
     }
 }
 

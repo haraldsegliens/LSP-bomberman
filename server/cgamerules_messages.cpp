@@ -198,10 +198,11 @@ void Gamerules::parseReady(StringReader& reader) {
 void Gamerules::parsePlayerInput(StringReader& reader) {
     if(state == GameState::GAME) {
         int player_id = reader.getBinaryNumber(1);
-        short inputState = reader.getBinaryNumber(2);
+        unsigned short inputState = reader.getBinaryNumber(2);
         Player* player = getPlayer(player_id);
         if(player != nullptr) {
             player->setInputState(inputState);
+            std::cout << inputState << " ";
         }
     }
 }

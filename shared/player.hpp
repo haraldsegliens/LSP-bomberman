@@ -44,8 +44,8 @@ class Player {
     bool destroy;
     std::list<Dynamite*> currentDynamites;
     sf::Time endTemporaryPowerup;
-    short playerInput;
-    short lastProcessedPlayerInput;
+    unsigned short playerInput;
+    unsigned short lastProcessedPlayerInput;
 
     void handleSurroundings(Gamerules* gamerules, SurroundingInfo& info);
     void handlePlayerInput(Gamerules* gamerules, SurroundingInfo& info);
