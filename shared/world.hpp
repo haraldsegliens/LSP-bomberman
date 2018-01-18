@@ -41,13 +41,19 @@ public:
 
     int getWidth() { return mapSize.x; }
     int getHeight() { return mapSize.y; }
-    WorldCell getCell(int i) { return map[i]; }
-    WorldCell getCell(sf::Vector2<int> pos) { return map[pos.x + pos.y * mapSize.x]; }
+    WorldCell getCell(int i) {
+        if(i < 0 || i >= getWidth()*getHeight()) {
+            return WorldCell::WALL;
+        }
+        return map[i];
+    }
+    WorldCell getCell(sf::Vector2<int> pos) { return getCell(pos.x + pos.y * mapSize.x); }
     void cleanup();
 #ifdef CLIENT
     void draw(sf::RenderWindow& window);
     void loadMap(std::vector<WorldCell>& _map,sf::Vector2<int> _mapSize);
     void changeCell(sf::Vector2<int> pos, WorldCell value);
+    int getSpriteId(sf::Vector2i pos);
 #else
     void update(Gamerules* gamerules);
     void loadMap(std::vector<WorldCell>& _map,sf::Vector2<int> _mapSize,std::vector<sf::Vector2<int>> _playerSpawnPoints);

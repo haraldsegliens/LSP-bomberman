@@ -18,6 +18,21 @@ void CWorld::draw(sf::RenderWindow& window) {
     window.draw(vertices, states);
 }
 
+int CWorld::getSpriteId(sf::Vector2i pos) {
+    int thisCell = getCell(pos);
+    int upperCell = getCell(pos + sf::Vector2i(0,-1));
+    if(upperCell == WorldCell::WALL && thisCell == WorldCell::GROUND)
+    {
+        return 1;
+    }
+    if(thisCell == WorldCell::GROUND)
+    {
+        return 0;
+    }
+
+    return thisCell+1;
+}
+
 void CWorld::loadMap(std::vector<WorldCell>& _map,sf::Vector2<int> _mapSize) {
     mapSize = _mapSize;
     map = _map;
@@ -27,7 +42,7 @@ void CWorld::loadMap(std::vector<WorldCell>& _map,sf::Vector2<int> _mapSize) {
     for(int x = 0; x < getWidth(); x++) {
         for(int y = 0; y < getHeight(); y++) {
             sf::Vertex* quad = &vertices[(x + y * getWidth()) * 4];
-            int cell = (int)getCell(sf::Vector2<int>(x,y));
+            int cell = getSpriteId(sf::Vector2<int>(x,y));
 
             // define its 4 corners
             quad[0].position = sf::Vector2f(x * SPRITE_CELL_SIZE, y * SPRITE_CELL_SIZE);
