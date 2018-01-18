@@ -68,16 +68,12 @@ void CGamerules::handleInitState() {
 }
 
 void CGamerules::handleGameState() {
-    if((getCurrentTime() - lastDraw).asSeconds() < 0.02f) {
-        return;
-    }
     WindowEvents events = screen->draw(this);
     if(events.windowClosed) {
         std::cout << "END" << std::endl;
         sendDisconnect();
         state = GameState::END;
     } else if(lastInputState != events.inputState) {
-        std::cout << "Player input: " << (unsigned int)events.inputState << std::endl;
         sendPlayerInput(events.inputState);
         lastInputState = events.inputState;
     }
@@ -108,7 +104,7 @@ void CGamerules::toConnectionErrorState() {
 
 void CGamerules::draw(sf::RenderWindow& window) {
     world->draw(window);
-    volatileEntitiesManager->draw(window);
+    //volatileEntitiesManager->draw(window);
     for(Dynamite& dynamite : dynamites) {
         dynamite.draw(window);
     }

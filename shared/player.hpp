@@ -55,7 +55,7 @@ class Player {
     }
 
     bool isBitSet(short value,PlayerInputBits bit) {
-        return (bool)(value >> bit) & 1U;
+        return (bool)((value >> bit) & 1);
     }
 
     bool isOneTimePressed(PlayerInputBits bit) {
@@ -79,10 +79,8 @@ public:
 
     std::string const& getName() { return name; }
 
-    sf::Vector2f getPosition() {return position;}
-    void setPosition(sf::Vector2f a) {
-        position = a;
-    }
+    sf::Vector2f getPosition();
+    void setPosition(sf::Vector2f a);
 
     sf::Vector2i getDirection() {return direction;}
     void setDirection(sf::Vector2i a) {

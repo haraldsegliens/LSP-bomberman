@@ -19,12 +19,21 @@ CPlayer::CPlayer(int _id,std::string _name,
 CPlayer::~CPlayer() {}
 
 void CPlayer::draw(sf::RenderWindow& window) {
+    sf::Vector2f _position = getPosition();
     int i = direction.x == 0 ? (direction.y == -1 ? 0 : 1) : (direction.x == -1 ? 2 : 3);
     sf::RectangleShape rectangle;
     rectangle.setSize(sf::Vector2f(SPRITE_PLAYER_SIZE_WIDTH, SPRITE_PLAYER_SIZE_HEIGTH));
-    rectangle.setPosition((position.x-0.5f) * SPRITE_CELL_SIZE, 
-                          (position.y-0.5f) * SPRITE_CELL_SIZE - SPRITE_PLAYER_SIZE_HEIGTH/2);
+    rectangle.setPosition((_position.x-0.5f) * SPRITE_CELL_SIZE, 
+                          (_position.y-0.5f) * SPRITE_CELL_SIZE - SPRITE_PLAYER_SIZE_HEIGTH/2);
     rectangle.setTexture(&playerTexture);
     rectangle.setTextureRect(sf::IntRect(SPRITE_PLAYER_SIZE_WIDTH*i, 0, SPRITE_PLAYER_SIZE_WIDTH, SPRITE_PLAYER_SIZE_HEIGTH));
     window.draw(rectangle);
+}
+
+sf::Vector2f CPlayer::getPosition() {
+    return position;
+}
+
+void CPlayer::setPosition(sf::Vector2f a) {
+    position = a;
 }

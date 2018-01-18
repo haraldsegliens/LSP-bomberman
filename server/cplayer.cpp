@@ -60,21 +60,25 @@ void Player::handlePlayerInput(Gamerules* gamerules, SurroundingInfo& info) {
         direction.x = 0;
         direction.y = -1;
         movePlayer(gamerules);
+        //std::cout << "UP" << std::endl;
     } else if(isPressed(PlayerInputBits::DOWN)) {
         direction.x = 0;
         direction.y = 1;
         movePlayer(gamerules);
+        //std::cout << "DOWN" << std::endl;
     } else if(isPressed(PlayerInputBits::LEFT)) {
         direction.x = -1;
         direction.y = 0;
         movePlayer(gamerules);
+        //std::cout << "LEFT" << std::endl;
     } else if(isPressed(PlayerInputBits::RIGHT)) {
         direction.x = 1;
         direction.y = 0;
         movePlayer(gamerules);
+        //std::cout << "RIGHT" << std::endl;
     }
 
-    if(isOneTimePressed(PlayerInputBits::PLANT_BOMB)) {
+    /*if(isOneTimePressed(PlayerInputBits::PLANT_BOMB)) {
         sf::Vector2<int> freeGround = info.findWorldCell(WorldCell::GROUND);
         if(currentDynamites.size() < maxDynamiteCount && 
             info.entities.size() == 0 && info.dynamites.size() == 0 && 
@@ -91,7 +95,7 @@ void Player::handlePlayerInput(Gamerules* gamerules, SurroundingInfo& info) {
             }
             currentDynamites.clear();
         }
-    }
+    }*/
 }
 
 void Player::movePlayer(Gamerules* gamerules) {
@@ -121,11 +125,11 @@ void Player::movePlayer(Gamerules* gamerules) {
     }
 
     //handling dynamite kick powerup
-    if(powerup == Powerup::DYNAMITE_KICK && targetInfo.dynamites.size() == 1) {
+    /*if(powerup == Powerup::DYNAMITE_KICK && targetInfo.dynamites.size() == 1) {
         targetInfo.dynamites[0]->kick(direction);
     } else {
         return;
-    }
+    }*/
     if(direction.x != 0) {
         //horizontāli
         position.x += getUnitSpeed() * gamerules->getDeltaTime().asSeconds() * direction.x;
@@ -139,4 +143,9 @@ void Player::movePlayer(Gamerules* gamerules) {
 
 void Player::removeDynamite(Dynamite* dynamite) {
     currentDynamites.erase(std::find(currentDynamites.begin(),currentDynamites.end(),dynamite));
+}
+
+sf::Vector2f Player::getPosition() {return position;}
+void Player::setPosition(sf::Vector2f a) {
+    position = a;
 }
